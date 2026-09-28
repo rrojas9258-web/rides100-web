@@ -35,9 +35,21 @@
         <div class="phone">
           <div class="phone-top">Rides100</div>
           <div class="phone-title">Where are you going?</div>
-          <div class="ride-line"><span>Pickup</span><b>Your location</b></div>
-          <div class="ride-line"><span>Destination</span><b>Choose a destination</b></div>
-          <div class="offer-card"><span>Rides100</span><strong>Driver offers, your choice</strong></div>
+          <label class="ride-input">
+            <span>Pickup</span>
+            <input id="pickupInput" type="text" placeholder="Enter pickup location" autocomplete="street-address" />
+          </label>
+          <label class="ride-input">
+            <span>Destination</span>
+            <input id="destinationInput" type="text" placeholder="Enter destination" autocomplete="street-address" />
+          </label>
+          <button id="previewOffersButton" class="offer-action" type="button">Preview driver offers</button>
+          <div id="demoNotice" class="demo-notice">Website demo only — no ride will be booked.</div>
+          <div id="offersPanel" class="offers-panel" hidden>
+            <div class="offer-card interactive-offer"><span>Standard</span><strong>Sample offer · $18–$24</strong><small>Approx. 6 min pickup</small></div>
+            <div class="offer-card interactive-offer"><span>Rides100 XL</span><strong>Sample offer · $26–$34</strong><small>Approx. 9 min pickup</small></div>
+            <a class="learn-link" href="riders.html">See how the rider experience works →</a>
+          </div>
           <div class="mini">Secure in-app payment · Driver details · Trip support</div>
         </div>
       </div>
@@ -99,5 +111,6 @@
     </div>
     <div class="copyright">© 2026 RISCASAN LLC. All rights reserved.</div>
   </footer>
+  <script src="app.js"></script>
 </body>
 </html>
