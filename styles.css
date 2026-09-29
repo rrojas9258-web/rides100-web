@@ -71,3 +71,8 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .menu-toggle{display:none;background:transparent;border:0;color:#fff;font-size:25px;cursor:pointer}
 .mobile-menu{position:absolute;top:76px;left:0;right:0;background:#08111f;border-top:1px solid #1d2a3a;padding:16px 6vw 20px;display:grid;gap:6px}
 .mobile-menu a{padding:12px 0;color:#d9e1ea;font-weight:800;border-bottom:1px solid #152235}
+
+.ecosystem-card{display:block;color:inherit}
+.ecosystem-visual{height:96px;border-radius:14px;background:linear-gradient(135deg,#0b1f33,#173b5f);display:flex;align-items:center;justify-content:center;margin-bottom:18px;overflow:hidden}
+.ecosystem-mark{width:58px;height:58px;font-size:28px}
+.ecosystem-link{display:inline-block;margin-top:14px;color:#3aa9e9;font-weight:900;font-size:13px}
