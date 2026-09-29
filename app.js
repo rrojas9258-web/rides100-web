@@ -17,3 +17,20 @@ if (button && panel) {
     panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
 }
+
+const menuToggle = document.getElementById('menuToggle');
+const mobileMenu = document.getElementById('mobileMenu');
+
+if (menuToggle && mobileMenu) {
+  menuToggle.addEventListener('click', () => {
+    mobileMenu.hidden = !mobileMenu.hidden;
+    menuToggle.textContent = mobileMenu.hidden ? '☰' : '×';
+  });
+
+  mobileMenu.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => {
+      mobileMenu.hidden = true;
+      menuToggle.textContent = '☰';
+    });
+  });
+}
