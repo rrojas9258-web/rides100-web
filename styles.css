@@ -107,3 +107,18 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .eco-modal-icon{width:62px;height:62px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(145deg,#0b1f33,#158fe7);color:#fff;font-weight:950;font-style:italic;font-size:30px;margin-bottom:16px;box-shadow:0 12px 28px rgba(21,143,231,.24)}
 @keyframes ecoPop{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:520px){.eco-modal{padding:16px}.eco-modal-panel{padding:24px 20px;border-radius:20px}.eco-modal-panel h3{font-size:26px}}
+
+
+/* vNext page polish */
+.page-hero{padding-top:88px}
+.page-lead{max-width:760px;color:var(--muted);line-height:1.7;font-size:17px}
+.soft-section{background:var(--soft)}
+.step-number{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#eaf5ff;color:#0b67a8;font-weight:950;margin-bottom:16px}
+.cta-panel{display:flex;justify-content:space-between;align-items:center;gap:28px;border:1px solid var(--line);border-radius:22px;padding:28px;background:#fff}
+.cta-panel h3{font-size:28px;margin:6px 0 8px}
+.cta-panel p{max-width:720px;color:var(--muted);line-height:1.65;margin:0}
+.card-action{margin-top:18px!important}
+.safety-card{border-color:#f1c7c7;background:#fffafa}
+.dark-outline{border-color:#22324a;color:#0c1625;background:#fff}
+.desktop-nav a[aria-current="page"]{color:#fff}
+@media(max-width:850px){.cta-panel{flex-direction:column;align-items:flex-start}.page-hero{padding-top:64px}}
