@@ -45,7 +45,7 @@ const ecoModalTitle = document.getElementById('ecoModalTitle');
 const ecoModalDescription = document.getElementById('ecoModalDescription');
 const ecoModalLink = document.getElementById('ecoModalLink');
 
-document.querySelectorAll('.eco-hotspot[data-eco-name]').forEach((hotspot) => {
+document.querySelectorAll('[data-eco-name]').forEach((hotspot) => {
   hotspot.addEventListener('click', () => {
     if (!ecoModal) return;
     ecoModalTitle.textContent = hotspot.dataset.ecoName || 'Riscasan project';
