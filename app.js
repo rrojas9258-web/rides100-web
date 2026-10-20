@@ -99,7 +99,7 @@ signupTabs.forEach((tab) => {
 });
 
 if (signupForm) {
-  signupForm.addEventListener('submit', (event) => {
+  signupForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const name = document.getElementById('signupName')?.value.trim() || '';
@@ -107,28 +107,49 @@ if (signupForm) {
     const phone = document.getElementById('signupPhone')?.value.trim() || '';
     const city = document.getElementById('signupCity')?.value.trim() || '';
     const vehicle = document.getElementById('signupVehicle')?.value.trim() || '';
-    const consent = document.getElementById('signupConsent')?.checked;
-    const type = signupType?.value === 'driver' ? 'Driver' : 'Rider';
+    const website = document.getElementById('signupWebsite')?.value.trim() || '';
+    const consent = document.getElementById('signupConsent')?.checked === true;
+    const type = signupType?.value === 'driver' ? 'driver' : 'rider';
 
     if (!name || !email || !consent) {
       if (signupStatus) signupStatus.textContent = 'Please enter your name, email, and confirm consent.';
       return;
     }
 
-    const subject = encodeURIComponent(`Rides100 ${type} Launch Signup`);
-    const lines = [
-      `Signup type: ${type}`,
-      `Name: ${name}`,
-      `Email: ${email}`,
-      `Phone: ${phone || 'Not provided'}`,
-      `City / market: ${city || 'Not provided'}`,
-    ];
-    if (type === 'Driver') lines.push(`Vehicle: ${vehicle || 'Not provided'}`);
-    lines.push('', 'Consent: I agree to be contacted about Rides100 launch availability and onboarding.');
+    if (signupSubmit) signupSubmit.setAttribute('disabled', 'true');
+    if (signupStatus) signupStatus.textContent = 'Saving your signup…';
 
-    const body = encodeURIComponent(lines.join('\n'));
-    if (signupStatus) signupStatus.textContent = 'Opening your email app to finish signup securely.';
-    window.location.href = `mailto:contact@riscasan.com?subject=${subject}&body=${body}`;
+    try {
+      const response = await fetch('https://utpprhmhbnioisavfdst.supabase.co/functions/v1/r100-signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          signupType: type,
+          name,
+          email,
+          phone,
+          city,
+          vehicle,
+          website,
+          consent,
+        }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result?.error || 'Could not save signup.');
+
+      signupForm.reset();
+      setSignupType(type);
+      if (signupStatus) {
+        signupStatus.textContent = result?.duplicate
+          ? 'You are already on the Rides100 launch list.'
+          : 'Success — you are on the Rides100 launch list.';
+      }
+    } catch (error) {
+      if (signupStatus) signupStatus.textContent = error instanceof Error ? error.message : 'Could not save signup.';
+    } finally {
+      if (signupSubmit) signupSubmit.removeAttribute('disabled');
+    }
   });
 }
 
