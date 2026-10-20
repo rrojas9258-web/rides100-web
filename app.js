@@ -936,6 +936,8 @@ async function loadDriverLiveFeed() {
     }
 
     driverLiveRideId.value = ride.id || '';
+    driverLiveRideId.dataset.pickupLat = Number.isFinite(Number(ride.pickup_lat)) ? String(ride.pickup_lat) : '';
+    driverLiveRideId.dataset.pickupLng = Number.isFinite(Number(ride.pickup_lng)) ? String(ride.pickup_lng) : '';
     const net = Number(ride.driver_net_cents || 0) / 100;
     const formatted = '$' + net.toFixed(2);
     if (driverNetOffer) driverNetOffer.textContent = formatted;
@@ -2349,4 +2351,71 @@ function queueR100RoutePreview() {
 
 ['webPickup','webDestination','webStop1'].forEach((id) => {
   document.getElementById(id)?.addEventListener('change', queueR100RoutePreview);
+});
+
+
+const driverPickupEtaButton = document.getElementById('driverPickupEtaButton');
+
+function currentDriverRidePickup() {
+  const id = document.getElementById('driverLiveRideId');
+  if (!id?.value) return null;
+  const lat = Number(id.dataset.pickupLat);
+  const lng = Number(id.dataset.pickupLng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat, lng };
+}
+
+driverPickupEtaButton?.addEventListener('click', () => {
+  const metric = document.getElementById('driverPickupMetric');
+  const status = document.getElementById('dashboardStatus');
+  const pickup = currentDriverRidePickup();
+
+  if (!pickup) {
+    if (status) status.textContent = 'Load a live ride request before calculating pickup ETA.';
+    return;
+  }
+  if (!navigator.geolocation) {
+    if (status) status.textContent = 'Location services are not available in this browser.';
+    return;
+  }
+
+  driverPickupEtaButton.disabled = true;
+  if (metric) metric.textContent = 'Getting your location…';
+
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    try {
+      const response = await fetch(R100_ROUTE_MAP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          metricsOnly: true,
+          pickup: {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          },
+          destination: pickup,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error || 'Could not calculate pickup ETA.');
+
+      const miles = Number(data.distanceMeters || 0) / 1609.344;
+      const minutes = Math.max(1, Math.round(Number(data.durationSeconds || 0) / 60));
+      if (metric) metric.textContent = minutes + ' min · ' + miles.toFixed(1) + ' mi to pickup';
+      if (status) status.textContent = 'Pickup ETA calculated from your current location. Your location was used only for this request.';
+    } catch (error) {
+      if (metric) metric.textContent = 'Pickup ETA unavailable';
+      if (status) status.textContent = error instanceof Error ? error.message : 'Could not calculate pickup ETA.';
+    } finally {
+      driverPickupEtaButton.disabled = false;
+    }
+  }, () => {
+    if (metric) metric.textContent = 'Location permission required';
+    if (status) status.textContent = 'Allow location access to calculate pickup ETA.';
+    driverPickupEtaButton.disabled = false;
+  }, {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 15000,
+  });
 });
