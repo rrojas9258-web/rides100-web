@@ -916,6 +916,48 @@ const driverNetOffer = document.getElementById('driverNetOffer');
 const driverAcceptNetOffer = document.getElementById('driverAcceptNetOffer');
 const driverDeclineNetOffer = document.getElementById('driverDeclineNetOffer');
 const driverSendCounter = document.getElementById('driverSendCounter');
+const driverLiveRideId = document.getElementById('driverLiveRideId');
+
+async function loadDriverLiveFeed() {
+  if (!driverLiveRideId || !window.R100Auth?.callRides) return;
+  const dashboardStatus = document.getElementById('dashboardStatus');
+
+  try {
+    const result = await window.R100Auth.callRides('driverFeed');
+    const ride = Array.isArray(result?.rides) ? result.rides[0] : null;
+    if (!ride) {
+      driverLiveRideId.value = '';
+      if (driverNetOffer) driverNetOffer.textContent = '—';
+      if (driverAcceptNetOffer) driverAcceptNetOffer.textContent = 'Accept Ride';
+      const pickup = document.getElementById('driverRidePickup');
+      const destination = document.getElementById('driverRideDestination');
+      if (pickup) pickup.textContent = 'No live request available';
+      if (destination) destination.textContent = '—';
+      if (dashboardStatus) dashboardStatus.textContent = 'No live ride requests are available right now.';
+      return;
+    }
+
+    driverLiveRideId.value = ride.id || '';
+    const net = Number(ride.driver_net_cents || 0) / 100;
+    const formatted = '$' + net.toFixed(2);
+    if (driverNetOffer) driverNetOffer.textContent = formatted;
+    if (driverAcceptNetOffer) driverAcceptNetOffer.textContent = 'Accept ' + formatted;
+
+    const pickup = document.getElementById('driverRidePickup');
+    const destination = document.getElementById('driverRideDestination');
+    if (pickup) pickup.textContent = ride.pickup_label || 'Pickup';
+    if (destination) destination.textContent = ride.destination_label || 'Destination';
+
+    ['driverPickupMetric','driverTripMetric','driverPerMileMetric','driverHourlyMetric'].forEach((id) => {
+      const node = document.getElementById(id);
+      if (node) node.textContent = 'Route metric pending';
+    });
+
+    if (dashboardStatus) dashboardStatus.textContent = 'Live request loaded securely. Driver pricing is net earnings only.';
+  } catch (error) {
+    if (dashboardStatus) dashboardStatus.textContent = error instanceof Error ? error.message : 'Could not load live requests.';
+  }
+}
 
 if (driverOpenCounter && driverCounterPanel) {
   driverOpenCounter.addEventListener('click', () => {
@@ -924,34 +966,65 @@ if (driverOpenCounter && driverCounterPanel) {
   });
 }
 
-driverAcceptNetOffer?.addEventListener('click', () => {
+driverAcceptNetOffer?.addEventListener('click', async () => {
   const status = document.getElementById('dashboardStatus');
-  const net = driverNetOffer?.textContent || '';
-  if (status) status.textContent = 'Ride accepted at ' + net + ' net earnings in this development preview.';
+  const rideId = driverLiveRideId?.value || '';
+  if (!rideId || !window.R100Auth?.callRides) {
+    if (status) status.textContent = 'No live ride request is selected.';
+    return;
+  }
+
+  driverAcceptNetOffer.disabled = true;
+  try {
+    const result = await window.R100Auth.callRides('driverAccept', { rideId });
+    const net = Number(result?.driverNetCents || 0) / 100;
+    if (status) status.textContent = 'Ride accepted securely at $' + net.toFixed(2) + ' net earnings.';
+    await loadDriverLiveFeed();
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not accept ride.';
+  } finally {
+    driverAcceptNetOffer.disabled = false;
+  }
 });
 
 driverDeclineNetOffer?.addEventListener('click', () => {
   const status = document.getElementById('dashboardStatus');
-  if (status) status.textContent = 'Ride declined in this development preview.';
+  if (status) status.textContent = 'Decline is UI-only until the protected decline endpoint is added. No backend change was made.';
 });
 
-driverSendCounter?.addEventListener('click', () => {
+driverSendCounter?.addEventListener('click', async () => {
   const status = document.getElementById('dashboardStatus');
+  const rideId = driverLiveRideId?.value || '';
   const value = Number(driverCounterNet?.value || 0);
+
+  if (!rideId || !window.R100Auth?.callRides) {
+    if (status) status.textContent = 'No live ride request is selected.';
+    return;
+  }
   if (!Number.isFinite(value) || value <= 0) {
     if (status) status.textContent = 'Enter the net amount you want to earn.';
     return;
   }
 
-  const formatted = '$' + value.toFixed(2);
-  if (driverNetOffer) driverNetOffer.textContent = formatted;
-  if (driverAcceptNetOffer) driverAcceptNetOffer.textContent = 'Accept ' + formatted;
-  if (driverCounterPanel) driverCounterPanel.hidden = true;
-  const riderTotalInternal = grossFromDriverNet(value);
-  if (status) status.textContent = 'Counter sent for ' + formatted + ' net earnings. Rider total is calculated internally and is not shown to the driver.';
-  // Development preview only: riderTotalInternal is intentionally not rendered on the driver UI.
+  driverSendCounter.disabled = true;
+  try {
+    const formatted = '$' + value.toFixed(2);
+    await window.R100Auth.callRides('driverCounter', {
+      rideId,
+      driverNetCents: Math.round(value * 100),
+    });
+    if (driverNetOffer) driverNetOffer.textContent = formatted;
+    if (driverCounterPanel) driverCounterPanel.hidden = true;
+    if (status) status.textContent = 'Counter sent securely for ' + formatted + ' net earnings. Rider total was calculated on the server.';
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not send counter offer.';
+  } finally {
+    driverSendCounter.disabled = false;
+  }
 });
 
+window.addEventListener('r100-auth-ready', loadDriverLiveFeed);
+if (window.R100Auth) loadDriverLiveFeed();
 
 function grossFromDriverNet(netAmount, feeRate = RIDES100_PLATFORM_FEE_RATE) {
   const net = Number(netAmount);
