@@ -72,3 +72,62 @@ document.addEventListener('keydown', (event) => {
     document.body.style.overflow = '';
   }
 });
+
+
+const signupForm = document.getElementById('signupForm');
+const signupType = document.getElementById('signupType');
+const signupStatus = document.getElementById('signupStatus');
+const driverFields = document.getElementById('driverFields');
+const signupSubmit = document.querySelector('.signup-submit');
+const signupTabs = document.querySelectorAll('[data-signup-type]');
+
+function setSignupType(type) {
+  if (!signupType) return;
+  const isDriver = type === 'driver';
+  signupType.value = isDriver ? 'driver' : 'rider';
+  if (driverFields) driverFields.hidden = !isDriver;
+  if (signupSubmit) signupSubmit.textContent = isDriver ? 'Join Driver Launch List' : 'Join Rider Launch List';
+  signupTabs.forEach((tab) => {
+    const active = tab.dataset.signupType === signupType.value;
+    tab.classList.toggle('active', active);
+    tab.setAttribute('aria-selected', String(active));
+  });
+}
+
+signupTabs.forEach((tab) => {
+  tab.addEventListener('click', () => setSignupType(tab.dataset.signupType || 'rider'));
+});
+
+if (signupForm) {
+  signupForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const name = document.getElementById('signupName')?.value.trim() || '';
+    const email = document.getElementById('signupEmail')?.value.trim() || '';
+    const phone = document.getElementById('signupPhone')?.value.trim() || '';
+    const city = document.getElementById('signupCity')?.value.trim() || '';
+    const vehicle = document.getElementById('signupVehicle')?.value.trim() || '';
+    const consent = document.getElementById('signupConsent')?.checked;
+    const type = signupType?.value === 'driver' ? 'Driver' : 'Rider';
+
+    if (!name || !email || !consent) {
+      if (signupStatus) signupStatus.textContent = 'Please enter your name, email, and confirm consent.';
+      return;
+    }
+
+    const subject = encodeURIComponent(`Rides100 ${type} Launch Signup`);
+    const lines = [
+      `Signup type: ${type}`,
+      `Name: ${name}`,
+      `Email: ${email}`,
+      `Phone: ${phone || 'Not provided'}`,
+      `City / market: ${city || 'Not provided'}`,
+    ];
+    if (type === 'Driver') lines.push(`Vehicle: ${vehicle || 'Not provided'}`);
+    lines.push('', 'Consent: I agree to be contacted about Rides100 launch availability and onboarding.');
+
+    const body = encodeURIComponent(lines.join('\n'));
+    if (signupStatus) signupStatus.textContent = 'Opening your email app to finish signup securely.';
+    window.location.href = `mailto:contact@riscasan.com?subject=${subject}&body=${body}`;
+  });
+}
