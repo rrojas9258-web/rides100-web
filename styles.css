@@ -195,3 +195,13 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .ride-category-card strong{display:block;font-size:15px;color:#102033}
 .ride-category-card small{display:block;margin-top:3px;color:#6b7280;font-size:11px;line-height:1.35}
 @media(max-width:620px){.ride-category-grid{grid-template-columns:1fr 1fr}.ride-category-card{padding:8px}.ride-category-card strong{font-size:14px}}
+
+.schedule-section{margin:2px 0 18px}
+.schedule-toggle{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.schedule-option{border:1px solid #ccd7e2;background:#fff;color:#26364a;border-radius:12px;padding:13px 12px;font:inherit;font-weight:900;cursor:pointer}
+.schedule-option.active{background:#0b1f33;color:#fff;border-color:#0b1f33}
+.schedule-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px;border:1px solid #dfe7ef;border-radius:14px;background:#f8fbfd}
+.schedule-fields[hidden]{display:none}
+.schedule-fields .form-field{margin-bottom:0}
+.schedule-help{grid-column:1/-1;margin:0}
+@media(max-width:620px){.schedule-fields{grid-template-columns:1fr}.schedule-help{grid-column:auto}}
