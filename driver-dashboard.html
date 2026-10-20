@@ -61,6 +61,16 @@
           <button class="button primary" id="driverVerifyRidePin" type="button" disabled>Verify PIN & Start Ride</button>
         </div>
         <button class="button primary" id="driverCompleteRide" type="button" disabled>Complete Ride</button>
+      <div class="ride-cancel-panel">
+        <label class="form-field"><span>Cancel reason</span><select id="driverCancelReason">
+          <option value="rider_absent">Rider absent</option>
+          <option value="wrong_pickup">Pickup issue</option>
+          <option value="safety">Safety concern</option>
+          <option value="other">Other</option>
+        </select></label>
+        <button class="button secondary dark-outline" id="driverCancelRide" type="button" disabled>Cancel Ride</button>
+        <small>No cancellation fee is configured yet.</small>
+      </div>
         <small>Ride state changes are verified on the protected backend.</small>
       </section>
       </div><div id="dashboardStatus" class="form-status" role="status"></div></main><script src="app.js"></script><script type="module" src="r100-auth.js"></script></body></html>
