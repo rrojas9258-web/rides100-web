@@ -163,11 +163,15 @@ if (signupType) {
 
 const webRideRequestForm = document.getElementById('webRideRequestForm');
 if (webRideRequestForm) {
-  webRideRequestForm.addEventListener('submit', (event) => {
+  webRideRequestForm.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const pickup = document.getElementById('webPickup')?.value.trim() || '';
-    const destination = document.getElementById('webDestination')?.value.trim() || '';
-    const stop1 = document.getElementById('webStop1')?.value.trim() || '';
+
+    const pickupEl = document.getElementById('webPickup');
+    const destinationEl = document.getElementById('webDestination');
+    const stopEl = document.getElementById('webStop1');
+    const pickup = pickupEl?.value.trim() || '';
+    const destination = destinationEl?.value.trim() || '';
+    const stop1 = stopEl?.value.trim() || '';
     const forSomeoneElse = document.getElementById('rideForSomeoneElse')?.getAttribute('aria-pressed') === 'true';
     const guestRiderName = document.getElementById('guestRiderName')?.value.trim() || '';
     const guestRiderPhone = document.getElementById('guestRiderPhone')?.value.trim() || '';
@@ -175,10 +179,37 @@ if (webRideRequestForm) {
     const requestMode = document.getElementById('webRequestMode')?.value || 'now';
     const scheduleDate = document.getElementById('webScheduleDate')?.value || '';
     const scheduleTime = document.getElementById('webScheduleTime')?.value || '';
+    const riderOffer = Number(document.getElementById('webRiderOffer')?.value || 0);
     const status = document.getElementById('webRideStatus');
+    const submit = webRideRequestForm.querySelector('button[type="submit"]');
 
     if (!pickup || !destination) {
       if (status) status.textContent = 'Enter both pickup and destination.';
+      return;
+    }
+
+    const pickupLat = Number(pickupEl?.dataset.latitude);
+    const pickupLng = Number(pickupEl?.dataset.longitude);
+    const destinationLat = Number(destinationEl?.dataset.latitude);
+    const destinationLng = Number(destinationEl?.dataset.longitude);
+    if (![pickupLat, pickupLng, destinationLat, destinationLng].every(Number.isFinite)) {
+      if (status) status.textContent = 'Choose pickup and destination from the secure address suggestions.';
+      return;
+    }
+
+    let stop = null;
+    if (stop1) {
+      const stopLat = Number(stopEl?.dataset.latitude);
+      const stopLng = Number(stopEl?.dataset.longitude);
+      if (![stopLat, stopLng].every(Number.isFinite)) {
+        if (status) status.textContent = 'Choose the stop from the secure address suggestions.';
+        return;
+      }
+      stop = { label: stop1, lat: stopLat, lng: stopLng };
+    }
+
+    if (!Number.isFinite(riderOffer) || riderOffer < 1) {
+      if (status) status.textContent = 'Enter a valid ride offer.';
       return;
     }
 
@@ -201,23 +232,42 @@ if (webRideRequestForm) {
       return;
     }
 
-    sessionStorage.setItem('r100PendingRide', JSON.stringify({
-      pickup,
-      destination,
-      stop1: stop1 || null,
-      rideType,
-      requestMode,
-      scheduledFor,
-      forSomeoneElse,
-      guestRider: forSomeoneElse ? { name: guestRiderName, phone: guestRiderPhone } : null,
-    }));
-    if (status) status.textContent = requestMode === 'advance'
-      ? 'Advance request saved. Rider Sign In is required before scheduling can be confirmed.'
-      : 'Rider Sign In is required before a live request can be sent.';
-    window.location.href = 'rider-signin.html?next=request-ride';
+    if (!window.R100Auth?.callRides) {
+      if (status) status.textContent = 'Secure sign-in is still loading. Try again.';
+      return;
+    }
+
+    const session = await window.R100Auth.getSession().catch(() => null);
+    if (!session) {
+      sessionStorage.setItem('r100PendingRideReturn', 'request-ride.html');
+      window.location.href = 'rider-signin.html';
+      return;
+    }
+
+    if (submit) submit.disabled = true;
+    if (status) status.textContent = 'Sending secure ride request…';
+
+    try {
+      const result = await window.R100Auth.callRides('create', {
+        pickup: { label: pickup, lat: pickupLat, lng: pickupLng },
+        destination: { label: destination, lat: destinationLat, lng: destinationLng },
+        stop,
+        rideType,
+        scheduledFor,
+        riderOfferCents: Math.round(riderOffer * 100),
+        forSomeoneElse,
+        guest: forSomeoneElse ? { name: guestRiderName, phone: guestRiderPhone } : null,
+      });
+
+      sessionStorage.setItem('r100LastRideId', result?.ride?.id || '');
+      if (status) status.textContent = 'Ride request sent securely. Approved nearby drivers can now receive the net offer.';
+      if (submit) submit.textContent = 'Ride Request Sent';
+    } catch (error) {
+      if (status) status.textContent = error instanceof Error ? error.message : 'Could not send ride request.';
+      if (submit) submit.disabled = false;
+    }
   });
 }
-
 
 const rideCategoryCards = document.querySelectorAll('.ride-category-card');
 const webRideTypeInput = document.getElementById('webRideType');
