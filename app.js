@@ -543,6 +543,30 @@ function renderAssignmentPreview() {
         }
       });
 
+      const actionWrap = document.createElement('div');
+      actionWrap.className = 'assignment-row-actions';
+
+      if (row.status === 'declined') {
+        const reassign = document.createElement('button');
+        reassign.className = 'assignment-reassign';
+        reassign.type = 'button';
+        reassign.textContent = 'Reassign this slot';
+        reassign.addEventListener('click', () => {
+          const nameInput = document.getElementById('assignmentDriverName');
+          const typeInput = document.getElementById('assignmentVehicleType');
+          const statusMessage = document.getElementById('businessAdminStatus');
+          if (typeInput) typeInput.value = row.vehicleType;
+          if (nameInput) {
+            nameInput.value = '';
+            nameInput.focus();
+          }
+          if (statusMessage) {
+            statusMessage.textContent = 'Declined slot reopened for ' + (labelMap[row.vehicleType] || row.vehicleType) + '. Enter another qualified driver.';
+          }
+        });
+        actionWrap.appendChild(reassign);
+      }
+
       const remove = document.createElement('button');
       remove.className = 'assignment-remove';
       remove.type = 'button';
@@ -550,8 +574,9 @@ function renderAssignmentPreview() {
       remove.addEventListener('click', () => {
         writeAssignmentPreview(readAssignmentPreview().filter((entry) => entry.id !== row.id));
       });
+      actionWrap.appendChild(remove);
 
-      item.append(main, select, remove);
+      item.append(main, select, actionWrap);
       list.appendChild(item);
     });
   }
