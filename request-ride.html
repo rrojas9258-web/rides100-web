@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Request a Ride — Rides100</title>
+<meta name="description" content="Request a ride with Rides100. Rider sign-in is required before a live request can be sent.">
+<link rel="canonical" href="https://rides100.com/request-ride.html">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Rides100">
+<meta property="og:title" content="Request a Ride — Rides100"><meta property="og:url" content="https://rides100.com/request-ride.html">
+<meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="nav">
+<a class="brand" href="index.html" aria-label="Rides100 home"><img class="brand-logo" src="assets/rides100-logo.png" alt="Rides100"></a>
+<nav class="desktop-nav" aria-label="Primary navigation">
+<a href="riders.html">Riders</a><a href="drivers.html">Drivers</a><a href="request-ride.html" aria-current="page">Request a Ride</a><a href="support.html">Support</a>
+</nav>
+<button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">☰</button>
+<div class="mobile-menu" id="mobileMenu" hidden>
+<a href="riders.html">Riders</a><a href="drivers.html">Drivers</a><a href="request-ride.html" aria-current="page">Request a Ride</a><a href="support.html">Support</a>
+</div>
+</header>
+<main class="section page-hero request-page">
+<div class="section-head">
+<div class="eyebrow dark">REQUEST A RIDE</div>
+<h2>Plan your trip.</h2>
+<p class="page-lead">Live ride requests require a verified Rider account. The web request flow is prepared, but it will not send a trip until Rider Sign In is activated.</p>
+</div>
+<div class="request-grid">
+<form class="card request-form" id="webRideRequestForm">
+<label class="form-field"><span>Pickup</span><input id="webPickup" type="text" autocomplete="street-address" placeholder="Pickup location" required></label>
+<label class="form-field"><span>Destination</span><input id="webDestination" type="text" autocomplete="street-address" placeholder="Where are you going?" required></label>
+<label class="form-field"><span>Ride type</span>
+<select id="webRideType">
+<option value="standard">Standard</option>
+<option value="xl">Rides100 XL</option>
+<option value="premier">Premier</option>
+</select></label>
+<div class="request-security-note">A verified Rider Sign In will be required before any request can be transmitted to drivers.</div>
+<button class="button primary request-submit" type="submit">Continue to Rider Sign In</button>
+<div id="webRideStatus" class="form-status" role="status" aria-live="polite"></div>
+</form>
+<aside class="card request-info">
+<h3>What happens next?</h3>
+<p>After Rider Sign In is activated, this page will send the request into the same Rides100 ride-request system used by the mobile app, so approved drivers can receive it in real time.</p>
+<p><strong>No ride is being booked from this page yet.</strong></p>
+</aside>
+</div>
+</main>
+<footer><div><strong>Rides100</strong> is operated by <strong>RISCASAN LLC</strong>.</div><div class="footer-links"><a href="index.html">Home</a><a href="riders.html">Riders</a><a href="rider-signup.html">Rider Sign Up</a><a href="rider-signin.html">Rider Sign In</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div><div class="copyright">© 2026 RISCASAN LLC. All rights reserved.</div></footer>
+<script src="app.js"></script>
+</body></html>
