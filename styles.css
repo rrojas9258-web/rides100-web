@@ -166,3 +166,13 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 
 .hp-field{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}
 .signup-submit[disabled]{opacity:.65;cursor:not-allowed}
+
+.account-access{background:#f7f9fb}
+.account-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.account-switch{max-width:760px;margin-top:16px;font-size:14px;color:#526071}
+.account-switch a{color:#0b67a8;font-weight:900}
+.signin-page{max-width:900px;margin:0 auto}
+.auth-status-card{max-width:700px}
+.auth-status-card p{margin-top:0;color:var(--muted);line-height:1.65}
+.auth-actions{margin-top:20px}
+@media(max-width:650px){.account-links,.auth-actions{display:grid}}
