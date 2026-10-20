@@ -443,6 +443,7 @@ if (document.getElementById('businessStatusFlow')) {
         const index = businessStatusSteps.indexOf(current);
         const next = businessStatusSteps[Math.min(index + 1, businessStatusSteps.length - 1)];
         writeBusinessPreviewStatus(next);
+        if (next !== current) appendBusinessAudit('Event status advanced', current.replaceAll('_', ' ') + ' → ' + next.replaceAll('_', ' ') + '.');
         if (status) status.textContent = next === current
           ? 'Event is already at Completed in this development preview.'
           : `Preview status advanced to ${next.replaceAll('_', ' ')}. No production data was changed.`;
@@ -450,6 +451,7 @@ if (document.getElementById('businessStatusFlow')) {
 
       if (action === 'reset-status') {
         writeBusinessPreviewStatus('prepared');
+        appendBusinessAudit('Event status reset', 'Event preview status reset to Prepared.');
         if (status) status.textContent = 'Preview status reset to Prepared. No production data was changed.';
       }
     });
@@ -532,8 +534,10 @@ function renderAssignmentPreview() {
       });
       select.addEventListener('change', () => {
         const current = readAssignmentPreview();
+        const previous = current.find((entry) => entry.id === row.id)?.status || 'pending';
         const next = current.map((entry) => entry.id === row.id ? { ...entry, status: select.value } : entry);
         writeAssignmentPreview(next);
+        appendBusinessAudit('Assignment status changed', row.name + ': ' + previous + ' → ' + select.value + '.');
 
         const nextAccepted = next.filter((entry) => entry.status === 'accepted').length;
         const requiredVehicles = Number(getPreparedBusinessRequest()?.totalVehicles || 0);
@@ -573,6 +577,7 @@ function renderAssignmentPreview() {
       remove.textContent = 'Remove';
       remove.addEventListener('click', () => {
         writeAssignmentPreview(readAssignmentPreview().filter((entry) => entry.id !== row.id));
+        appendBusinessAudit('Driver removed', row.name + ' removed from assignment preview.');
       });
       actionWrap.appendChild(remove);
 
@@ -622,6 +627,7 @@ if (document.getElementById('driverAssignmentPanel')) {
       status: 'pending',
     });
     writeAssignmentPreview(current);
+    appendBusinessAudit('Driver added', name + ' added for ' + vehicleType + ' as Pending.');
     if (nameInput) nameInput.value = '';
     if (status) status.textContent = 'Qualified driver added as Pending in this development preview.';
   });
@@ -690,6 +696,7 @@ function renderDriverBusinessInvites() {
       const current = readAssignmentPreview();
       const next = current.map((entry) => entry.id === row.id ? { ...entry, status: 'accepted' } : entry);
       writeAssignmentPreview(next);
+      appendBusinessAudit('Driver accepted', row.name + ' accepted R-Business assignment.');
       renderDriverBusinessInvites();
       const accepted = next.filter((entry) => entry.status === 'accepted').length;
       const required = Number(getPreparedBusinessRequest()?.totalVehicles || 0);
@@ -710,6 +717,7 @@ function renderDriverBusinessInvites() {
       const current = readAssignmentPreview();
       const next = current.map((entry) => entry.id === row.id ? { ...entry, status: 'declined' } : entry);
       writeAssignmentPreview(next);
+      appendBusinessAudit('Driver declined', row.name + ' declined R-Business assignment.');
       renderDriverBusinessInvites();
       const dashboardStatus = document.getElementById('dashboardStatus');
       if (dashboardStatus) dashboardStatus.textContent = 'R-Business assignment declined in this development preview.';
@@ -723,4 +731,71 @@ function renderDriverBusinessInvites() {
 
 if (document.getElementById('driverBusinessAssignments')) {
   renderDriverBusinessInvites();
+}
+
+
+function readBusinessAudit() {
+  try {
+    const rows = JSON.parse(sessionStorage.getItem('r100BusinessAudit') || '[]');
+    return Array.isArray(rows) ? rows : [];
+  } catch {
+    return [];
+  }
+}
+
+function appendBusinessAudit(type, detail) {
+  const rows = readBusinessAudit();
+  rows.unshift({
+    id: 'audit-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+    type,
+    detail,
+    at: new Date().toISOString(),
+  });
+  sessionStorage.setItem('r100BusinessAudit', JSON.stringify(rows.slice(0, 100)));
+  renderBusinessAudit();
+}
+
+function renderBusinessAudit() {
+  const container = document.getElementById('businessAuditTrail');
+  if (!container) return;
+  const rows = readBusinessAudit();
+  container.innerHTML = '';
+
+  if (!rows.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-dashboard-state';
+    empty.textContent = 'No assignment activity recorded in this browser session.';
+    container.appendChild(empty);
+    return;
+  }
+
+  rows.forEach((row) => {
+    const item = document.createElement('div');
+    item.className = 'audit-entry';
+
+    const time = document.createElement('div');
+    time.className = 'audit-time';
+    time.textContent = row.at ? new Date(row.at).toLocaleString() : '—';
+
+    const body = document.createElement('div');
+    body.className = 'audit-body';
+    const title = document.createElement('strong');
+    title.textContent = row.type || 'Activity';
+    const detail = document.createElement('span');
+    detail.textContent = row.detail || '';
+    body.append(title, detail);
+
+    item.append(time, body);
+    container.appendChild(item);
+  });
+}
+
+if (document.getElementById('businessAuditTrail')) {
+  renderBusinessAudit();
+  document.getElementById('clearBusinessAudit')?.addEventListener('click', () => {
+    sessionStorage.removeItem('r100BusinessAudit');
+    renderBusinessAudit();
+    const status = document.getElementById('businessAdminStatus');
+    if (status) status.textContent = 'Preview audit log cleared from this browser session only.';
+  });
 }
