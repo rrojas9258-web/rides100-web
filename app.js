@@ -310,3 +310,17 @@ if (businessRequestForm) {
     if (status) status.textContent = `R-Business request prepared for ${totalVehicles} vehicle${totalVehicles === 1 ? '' : 's'}. Live business booking is not active yet.`;
   });
 }
+
+
+document.querySelectorAll('.wallet-demo-action').forEach((button) => {
+  button.addEventListener('click', () => {
+    const action = button.dataset.walletAction || '';
+    const status = document.getElementById('walletPreviewStatus');
+    const messages = {
+      add: 'Add Funds preview: Apple Pay and debit/credit card will use the secure Rides100 payment backend. No money is moved in this development preview.',
+      cashout: 'Cash Out preview: driver payouts remain locked until payout policy and Stripe Connect are approved.',
+      history: 'Wallet Activity preview: ledger entries will appear here after trusted backend events are connected.',
+    };
+    if (status) status.textContent = messages[action] || 'Wallet action is not active in this development preview.';
+  });
+});
