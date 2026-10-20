@@ -61,6 +61,56 @@
       <label class="form-field"><span>Pickup location</span><input id="businessPickup" type="text" maxlength="180" autocomplete="street-address" required></label>
       <label class="form-field"><span>Destination / event location</span><input id="businessDestination" type="text" maxlength="180" required></label>
 
+      <div class="business-options">
+        <div class="business-option-grid">
+          <label class="form-field"><span>Ride type</span>
+            <select id="businessRideMode">
+              <option value="event">Event / group transportation</option>
+              <option value="guest">Guest ride</option>
+              <option value="recurring">Recurring ride</option>
+            </select>
+          </label>
+          <label class="form-field"><span>Trip format</span>
+            <select id="businessTripFormat">
+              <option value="oneway">One way</option>
+              <option value="roundtrip">Round trip</option>
+            </select>
+          </label>
+        </div>
+        <div id="businessGuestFields" class="business-option-panel" hidden>
+          <div class="form-grid">
+            <label class="form-field"><span>Guest name</span><input id="businessGuestName" type="text" maxlength="100" autocomplete="name" placeholder="Guest / passenger name"></label>
+            <label class="form-field"><span>Guest mobile</span><input id="businessGuestPhone" type="tel" maxlength="30" autocomplete="tel" placeholder="Guest mobile number"></label>
+          </div>
+          <p class="form-help">Guest rides are designed so the passenger can receive ride details without managing the company booking.</p>
+        </div>
+        <div id="businessRecurringFields" class="business-option-panel" hidden>
+          <div class="form-grid">
+            <label class="form-field"><span>Frequency</span>
+              <select id="businessRecurringFrequency">
+                <option value="weekly">Weekly</option>
+                <option value="weekdays">Weekdays</option>
+                <option value="custom">Custom schedule</option>
+              </select>
+            </label>
+            <label class="form-field"><span>End date</span><input id="businessRecurringEnd" type="date"></label>
+          </div>
+        </div>
+        <div id="businessRoundTripFields" class="business-option-panel" hidden>
+          <div class="form-grid">
+            <label class="form-field"><span>Return date</span><input id="businessReturnDate" type="date"></label>
+            <label class="form-field"><span>Return time</span><input id="businessReturnTime" type="time"></label>
+          </div>
+        </div>
+        <div class="business-option-panel">
+          <div class="form-grid">
+            <label class="form-field"><span>Coordinator name</span><input id="businessCoordinatorName" type="text" maxlength="100" autocomplete="name" placeholder="Person monitoring the trip"></label>
+            <label class="form-field"><span>Coordinator mobile</span><input id="businessCoordinatorPhone" type="tel" maxlength="30" autocomplete="tel" placeholder="Mobile number for live updates"></label>
+          </div>
+          <p class="form-help">Coordinator tracking is a private-development preview. Live tracking and notifications will require authenticated production services.</p>
+        </div>
+      </div>
+
       <div class="business-fleet">
         <span class="ride-category-label">Vehicles requested</span>
         <div class="business-fleet-grid">
