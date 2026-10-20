@@ -1255,6 +1255,9 @@ async function loadRiderLivePanel() {
     const rides = Array.isArray(result?.rides) ? result.rides : [];
     const ride = rides.find((item) => ['open','negotiating','accepted'].includes(item.status)) || rides[0] || null;
 
+    const riderCancelButton = document.getElementById('riderCancelRide');
+    if (riderCancelButton) riderCancelButton.disabled = !['open','negotiating','accepted','en_route','arrived'].includes(ride?.status || '');
+
     if (!ride) {
       title.textContent = 'No active ride';
       route.textContent = 'Request a ride when you are ready.';
@@ -2437,6 +2440,8 @@ async function loadDriverLifecycle() {
     const ride = result?.ride || null;
 
     [enRoute, arrived, verifyPin, complete].forEach((button) => { if (button) button.disabled = true; });
+    const cancelButton = document.getElementById('driverCancelRide');
+    if (cancelButton) cancelButton.disabled = true;
 
     if (!ride) {
       title.textContent = 'No active accepted ride';
@@ -2451,6 +2456,7 @@ async function loadDriverLifecycle() {
     if (arrived) arrived.disabled = ride.status !== 'en_route';
     if (verifyPin) verifyPin.disabled = ride.status !== 'arrived';
     if (complete) complete.disabled = ride.status !== 'in_progress';
+    if (cancelButton) cancelButton.disabled = !['accepted','en_route','arrived'].includes(ride.status);
 
     const hidden = document.getElementById('driverLiveRideId');
     if (hidden) hidden.value = ride.id || '';
@@ -4246,3 +4252,64 @@ document.addEventListener('visibilitychange', () => {
 window.addEventListener('beforeunload', stopRiderTripPolling);
 window.addEventListener('r100-auth-ready', startRiderTripPolling);
 if (window.R100Auth) startRiderTripPolling();
+
+
+async function cancelCurrentRide(role) {
+  const statusNode = document.getElementById('dashboardStatus');
+  const reasonNode = document.getElementById(role === 'driver' ? 'driverCancelReason' : 'riderCancelReason');
+  let rideId = '';
+
+  if (role === 'driver') {
+    rideId = document.getElementById('driverLiveRideId')?.value || '';
+  } else {
+    rideId = sessionStorage.getItem('r100LastRideId') || '';
+    if (!rideId && window.R100Auth?.callRides) {
+      try {
+        const feed = await window.R100Auth.callRides('riderFeed');
+        const active = Array.isArray(feed?.rides)
+          ? feed.rides.find((r) => ['open','negotiating','accepted','en_route','arrived'].includes(r.status))
+          : null;
+        rideId = active?.id || '';
+      } catch {}
+    }
+  }
+
+  if (!rideId || !window.R100Auth?.callRides) {
+    if (statusNode) statusNode.textContent = 'No cancellable ride is selected.';
+    return;
+  }
+
+  const button = document.getElementById(role === 'driver' ? 'driverCancelRide' : 'riderCancelRide');
+  if (button) button.disabled = true;
+
+  try {
+    const result = await window.R100Auth.callRides('cancelRide', {
+      rideId,
+      role,
+      reason: reasonNode?.value || 'other',
+    });
+
+    if (statusNode) {
+      statusNode.textContent = result?.feePolicyStatus === 'not_configured'
+        ? 'Ride cancelled. No cancellation fee was applied.'
+        : 'Ride cancelled.';
+    }
+
+    if (role === 'driver') {
+      stopDriverLocationWatch();
+      await loadDriverLifecycle();
+      await loadDriverLiveFeed();
+    } else {
+      sessionStorage.removeItem('r100LastRideId');
+      await loadRiderLivePanel();
+      await refreshRiderTripStatus();
+    }
+  } catch (error) {
+    if (statusNode) statusNode.textContent = error instanceof Error ? error.message : 'Could not cancel ride.';
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+document.getElementById('riderCancelRide')?.addEventListener('click', () => cancelCurrentRide('rider'));
+document.getElementById('driverCancelRide')?.addEventListener('click', () => cancelCurrentRide('driver'));
