@@ -301,3 +301,8 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .admin-security-note{margin:16px 0 0;padding:14px;border-radius:12px;background:#fff8e8;border:1px solid #f2dfac;color:#6b5a2f;font-size:12px;line-height:1.6}
 @media(max-width:900px){.business-admin-summary,.admin-meta-grid,.fleet-mini-grid,.driver-eligibility-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.business-admin-summary,.admin-meta-grid,.fleet-mini-grid,.driver-eligibility-grid{grid-template-columns:1fr}.admin-panel-head{flex-direction:column}.admin-action-row{display:grid}}
+
+.business-status-flow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.business-status-flow span{position:relative;padding:7px 10px;border-radius:999px;background:#eef2f6;color:#7b8794;font-size:9px;font-weight:950;letter-spacing:.5px}
+.business-status-flow span.active{background:#0b1f33;color:#fff}
+.business-status-flow span.done{background:#e7f7ef;color:#19724a}
