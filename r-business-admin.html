@@ -42,7 +42,15 @@
     <div id="businessAdminEmpty" class="empty-dashboard-state">No prepared R-Business request found in this browser session.</div>
     <div id="businessAdminRequest" class="business-admin-request" hidden>
       <div class="business-admin-main">
-        <span class="request-status-pill">PREPARED</span>
+        <div id="businessStatusFlow" class="business-status-flow" aria-label="R-Business event status">
+          <span data-business-status="prepared">Prepared</span>
+          <span data-business-status="reviewing">Reviewing</span>
+          <span data-business-status="approved">Approved</span>
+          <span data-business-status="partially_assigned">Partially Assigned</span>
+          <span data-business-status="assigned">Assigned</span>
+          <span data-business-status="completed">Completed</span>
+        </div>
+        <span id="businessCurrentStatus" class="request-status-pill">PREPARED</span>
         <h3 id="adminEventName">Event</h3>
         <p id="adminOrg"></p>
         <div class="admin-route"><strong id="adminPickup"></strong><span>→</span><strong id="adminDestination"></strong></div>
@@ -63,7 +71,8 @@
         </div>
       </div>
       <div class="admin-action-row">
-        <button class="button primary admin-demo-action" type="button" data-admin-action="review">Start Review</button>
+        <button class="button primary admin-demo-action" type="button" data-admin-action="advance-status">Advance Status</button>
+        <button class="button secondary dark-outline admin-demo-action" type="button" data-admin-action="reset-status">Reset Status</button>
         <button class="button secondary dark-outline admin-demo-action" type="button" data-admin-action="assign">Assign Drivers</button>
         <button class="button secondary dark-outline admin-demo-action" type="button" data-admin-action="notes">Add Admin Note</button>
       </div>
