@@ -79,6 +79,31 @@
     </div>
   </section>
 
+  <section class="admin-panel" id="driverAssignmentPanel">
+    <div class="admin-panel-head">
+      <div><span class="dash-label">DRIVER ASSIGNMENT</span><h3>Assign qualified drivers to requested vehicles</h3></div>
+      <span class="admin-lock-pill">PREVIEW ONLY</span>
+    </div>
+    <div class="assignment-summary">
+      <div><span>Required vehicles</span><strong id="assignmentRequired">0</strong></div>
+      <div><span>Accepted</span><strong id="assignmentAccepted">0</strong></div>
+      <div><span>Pending</span><strong id="assignmentPending">0</strong></div>
+      <div><span>Remaining</span><strong id="assignmentRemaining">0</strong></div>
+    </div>
+    <div class="assignment-form">
+      <input id="assignmentDriverName" type="text" maxlength="80" placeholder="Qualified driver name">
+      <select id="assignmentVehicleType">
+        <option value="standard">R-Standard</option>
+        <option value="van">R-Van</option>
+        <option value="black">R-Black</option>
+        <option value="blackSuv">R-SUV Black</option>
+      </select>
+      <button id="addAssignmentDriver" class="button primary" type="button">Add Driver</button>
+    </div>
+    <div id="assignmentList" class="assignment-list"></div>
+    <p class="admin-security-note">This is a development-only assignment preview. Production driver assignment must verify R-Business eligibility, compliance, vehicle category, availability and authenticated admin authorization.</p>
+  </section>
+
   <section class="admin-panel">
     <div class="admin-panel-head">
       <div><span class="dash-label">DRIVER ELIGIBILITY</span><h3>R-Business qualified-driver pool</h3></div>
