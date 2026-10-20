@@ -9,6 +9,17 @@
         <div><span>Ride PIN</span><strong id="riderRidePin">—</strong></div>
         <div><span>Driver location</span><strong id="riderDriverLocationStatus">Waiting</strong></div>
       </div>
+      <div class="ride-cancel-panel">
+        <label class="form-field"><span>Cancel reason</span><select id="riderCancelReason">
+          <option value="changed_mind">Plans changed</option>
+          <option value="driver_delay">Driver delay</option>
+          <option value="wrong_pickup">Wrong pickup</option>
+          <option value="safety">Safety concern</option>
+          <option value="other">Other</option>
+        </select></label>
+        <button class="button secondary dark-outline" id="riderCancelRide" type="button" disabled>Cancel Ride</button>
+        <small>No cancellation fee is configured yet.</small>
+      </div>
       <div id="riderCounterOffers" class="rider-counter-offers"><div class="empty-dashboard-state">No driver responses yet.</div></div></section>
 <section class="dashboard-card"><span class="dash-label">RECENT TRIPS</span><div class="empty-dashboard-state">No completed trips yet.</div></section>
 <section class="dashboard-card"><span class="dash-label">RATINGS</span><h3>5.0 ★</h3><p>Your rider rating from completed trips will appear here.</p></section>
