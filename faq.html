@@ -10,7 +10,21 @@
 <body>
 <header class="nav">
   <a class="brand" href="index.html" aria-label="Rides100 home"><img class="brand-logo" src="assets/rides100-logo.png" alt="Rides100"></a>
-  <nav class="desktop-nav"><a href="riders.html">Riders</a><a href="drivers.html">Drivers</a><a href="index.html#safety">Safety</a><a href="support.html">Support</a><a href="faq.html" aria-current="page">FAQ</a></nav>
+  <nav class="desktop-nav" aria-label="Primary navigation">
+    <a href="riders.html">Riders</a>
+    <a href="drivers.html">Drivers</a>
+    <a href="index.html#safety">Safety</a>
+    <a href="support.html">Support</a>
+    <a href="faq.html" aria-current="page">FAQ</a>
+  </nav>
+  <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">☰</button>
+  <div class="mobile-menu" id="mobileMenu" hidden>
+    <a href="riders.html">Riders</a>
+    <a href="drivers.html">Drivers</a>
+    <a href="index.html#safety">Safety</a>
+    <a href="support.html">Support</a>
+    <a href="faq.html" aria-current="page">FAQ</a>
+  </div>
 </header>
 <main class="section page-hero">
   <div class="section-head"><div class="eyebrow dark">FAQ</div><h2>Frequently asked questions</h2><p class="page-lead">Straight answers about the Rides100 launch experience.</p></div>
@@ -26,4 +40,5 @@
   </div>
 </main>
 <footer><div><strong>Rides100</strong> is operated by <strong>RISCASAN LLC</strong>.</div><div class="footer-links"><a href="index.html">Home</a><a href="riders.html">Riders</a><a href="drivers.html">Drivers</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="support.html">Support</a></div><div class="copyright">© 2026 RISCASAN LLC. All rights reserved.</div></footer>
+<script src="app.js"></script>
 </body></html>
