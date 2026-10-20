@@ -421,6 +421,14 @@ if (businessAdminRequest) {
     document.getElementById('adminPassengers').textContent = String(pending.passengers || 0);
     document.getElementById('adminVehicleTotal').textContent = String(total);
     document.getElementById('adminContact').textContent = pending.contact || pending.email || '—';
+    const adminRideMode = document.getElementById('adminRideMode');
+    const adminTripFormat = document.getElementById('adminTripFormat');
+    const adminGuest = document.getElementById('adminGuest');
+    const adminCoordinator = document.getElementById('adminCoordinator');
+    if (adminRideMode) adminRideMode.textContent = (pending.rideMode || 'event').replaceAll('_',' ');
+    if (adminTripFormat) adminTripFormat.textContent = (pending.tripFormat || 'oneway').replaceAll('_',' ');
+    if (adminGuest) adminGuest.textContent = pending.guest?.name || '—';
+    if (adminCoordinator) adminCoordinator.textContent = pending.coordinator?.name || pending.coordinator?.phone || '—';
     document.getElementById('fleetStandard').textContent = String(fleet.standard || 0);
     document.getElementById('fleetVan').textContent = String(fleet.van || 0);
     document.getElementById('fleetBlack').textContent = String(fleet.black || 0);
