@@ -285,6 +285,16 @@ if (businessRequestForm) {
     const pickup = document.getElementById('businessPickup')?.value.trim() || '';
     const destination = document.getElementById('businessDestination')?.value.trim() || '';
     const notes = document.getElementById('businessNotes')?.value.trim() || '';
+    const rideMode = document.getElementById('businessRideMode')?.value || 'event';
+    const tripFormat = document.getElementById('businessTripFormat')?.value || 'oneway';
+    const guestName = document.getElementById('businessGuestName')?.value.trim() || '';
+    const guestPhone = document.getElementById('businessGuestPhone')?.value.trim() || '';
+    const recurringFrequency = document.getElementById('businessRecurringFrequency')?.value || '';
+    const recurringEnd = document.getElementById('businessRecurringEnd')?.value || '';
+    const returnDate = document.getElementById('businessReturnDate')?.value || '';
+    const returnTime = document.getElementById('businessReturnTime')?.value || '';
+    const coordinatorName = document.getElementById('businessCoordinatorName')?.value.trim() || '';
+    const coordinatorPhone = document.getElementById('businessCoordinatorPhone')?.value.trim() || '';
     const fleet = {
       standard: Number(document.getElementById('businessStandard')?.value || 0),
       van: Number(document.getElementById('businessVan')?.value || 0),
@@ -301,6 +311,19 @@ if (businessRequestForm) {
     }
     if (fleetValues.some((value) => !Number.isInteger(value) || value < 0 || value > 50) || totalVehicles < 1) {
       if (status) status.textContent = 'Request at least one vehicle. Maximum 50 per category.';
+      return;
+    }
+
+    if (rideMode === 'guest' && (!guestName || !guestPhone)) {
+      if (status) status.textContent = 'Enter the guest name and mobile number.';
+      return;
+    }
+    if (rideMode === 'recurring' && !recurringEnd) {
+      if (status) status.textContent = 'Choose an end date for the recurring ride.';
+      return;
+    }
+    if (tripFormat === 'roundtrip' && (!returnDate || !returnTime)) {
+      if (status) status.textContent = 'Choose a return date and time for the round trip.';
       return;
     }
 
@@ -323,6 +346,12 @@ if (businessRequestForm) {
       fleet,
       totalVehicles,
       notes,
+      rideMode,
+      tripFormat,
+      guest: rideMode === 'guest' ? { name: guestName, phone: guestPhone } : null,
+      recurring: rideMode === 'recurring' ? { frequency: recurringFrequency, endDate: recurringEnd } : null,
+      returnTrip: tripFormat === 'roundtrip' ? { date: returnDate, time: returnTime } : null,
+      coordinator: coordinatorName || coordinatorPhone ? { name: coordinatorName, phone: coordinatorPhone } : null,
       createdAt: new Date().toISOString(),
     };
 
@@ -1035,3 +1064,19 @@ addRideStop?.addEventListener('click', () => {
     if (stop) stop.value = '';
   }
 });
+
+
+const businessRideMode = document.getElementById('businessRideMode');
+const businessTripFormat = document.getElementById('businessTripFormat');
+const businessGuestFields = document.getElementById('businessGuestFields');
+const businessRecurringFields = document.getElementById('businessRecurringFields');
+const businessRoundTripFields = document.getElementById('businessRoundTripFields');
+
+function renderBusinessOptionPanels() {
+  if (businessGuestFields) businessGuestFields.hidden = businessRideMode?.value !== 'guest';
+  if (businessRecurringFields) businessRecurringFields.hidden = businessRideMode?.value !== 'recurring';
+  if (businessRoundTripFields) businessRoundTripFields.hidden = businessTripFormat?.value !== 'roundtrip';
+}
+businessRideMode?.addEventListener('change', renderBusinessOptionPanels);
+businessTripFormat?.addEventListener('change', renderBusinessOptionPanels);
+renderBusinessOptionPanels();
