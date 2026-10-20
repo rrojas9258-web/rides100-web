@@ -144,3 +144,22 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .eco-tile.featured{background:#0b1f33;color:#fff;border-color:#0b1f33}
 @media(max-width:900px){.ecosystem-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.ecosystem-grid{grid-template-columns:1fr}}
+
+.signup-page{max-width:980px;margin:0 auto}
+.signup-switch{display:flex;gap:10px;margin:0 0 18px}
+.signup-tab{border:1px solid var(--line);background:#fff;color:#203044;border-radius:999px;padding:11px 18px;font:inherit;font-weight:900;cursor:pointer}
+.signup-tab.active{background:#0b1f33;color:#fff;border-color:#0b1f33}
+.signup-form{max-width:760px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-field{display:block;margin-bottom:16px}
+.form-field span{display:block;font-size:13px;font-weight:900;color:#26364a;margin-bottom:7px}
+.form-field input{width:100%;border:1px solid #ccd7e2;border-radius:12px;padding:13px 14px;font:inherit;color:#102033;background:#fff}
+.form-field input:focus{border-color:#8ECDF4;outline:3px solid rgba(142,205,244,.28)}
+.form-help{font-size:13px;color:var(--muted);line-height:1.6;margin:-2px 0 18px}
+.consent-row{display:flex;gap:10px;align-items:flex-start;color:#4e5b6b;font-size:13px;line-height:1.55;margin:8px 0 20px}
+.consent-row input{margin-top:3px}
+.consent-row a{color:#0b67a8;font-weight:800}
+.signup-submit{border:0;cursor:pointer}
+.form-status{min-height:24px;margin-top:12px;color:#40506a;font-weight:800;font-size:13px}
+.signup-note{max-width:760px;margin-top:18px;padding:16px 18px;border-radius:14px;background:#f7f9fb;color:#526071;font-size:13px;line-height:1.6;border:1px solid #e3e8ee}
+@media(max-width:650px){.form-grid{grid-template-columns:1fr}}
