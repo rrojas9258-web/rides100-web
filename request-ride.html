@@ -31,6 +31,19 @@
 <form class="card request-form" id="webRideRequestForm">
 <label class="form-field"><span>Pickup</span><input id="webPickup" type="text" autocomplete="street-address" placeholder="Pickup location" required></label>
 <label class="form-field"><span>Destination</span><input id="webDestination" type="text" autocomplete="street-address" placeholder="Where are you going?" required></label>
+<div class="schedule-section">
+  <span class="ride-category-label">When do you need the ride?</span>
+  <div class="schedule-toggle" role="radiogroup" aria-label="Ride timing">
+    <button class="schedule-option active" type="button" data-request-mode="now" aria-pressed="true">Now</button>
+    <button class="schedule-option" type="button" data-request-mode="advance" aria-pressed="false">Request in Advance</button>
+  </div>
+  <input type="hidden" id="webRequestMode" value="now">
+  <div id="scheduleFields" class="schedule-fields" hidden>
+    <label class="form-field"><span>Date</span><input id="webScheduleDate" type="date"></label>
+    <label class="form-field"><span>Time</span><input id="webScheduleTime" type="time"></label>
+    <p class="form-help schedule-help">Choose a future pickup date and time. Final availability will be confirmed after Rider Sign In.</p>
+  </div>
+</div>
 
 <div class="ride-category-section">
   <span class="ride-category-label">Choose your Rides100 ride</span>
