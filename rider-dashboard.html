@@ -1,59 +1,12 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow,noarchive">
-<title>Rider Dashboard — Rides100 Development</title>
-<link rel="stylesheet" href="styles.css">
-</head>
-<body>
-<header class="nav">
-<a class="brand" href="index.html"><img class="brand-logo" src="assets/rides100-logo.png" alt="Rides100"></a>
-<nav class="desktop-nav"><a href="rider-dashboard.html" aria-current="page">Rider Dashboard</a><a href="wallets.html">Wallets</a><a href="request-ride.html">Request a Ride</a><a href="riders.html">Riders</a></nav>
-</header>
-<main class="section dashboard-page">
-<div class="dashboard-head">
-  <div><div class="eyebrow dark">PRIVATE DEVELOPMENT PREVIEW</div><h2>Rider Dashboard</h2><p>One place for rides, wallet, ratings, payments and profile.</p></div>
-  <a class="button primary" href="request-ride.html">Request a Ride</a>
-</div>
-
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow,noarchive"><title>Rider Dashboard — Rides100 Development</title><link rel="stylesheet" href="styles.css"></head>
+<body><header class="nav"><a class="brand" href="index.html"><img class="brand-logo" src="assets/rides100-logo.png" alt="Rides100"></a><nav class="desktop-nav"><a href="rider-dashboard.html" aria-current="page">Rider Dashboard</a><a href="wallets.html">Wallets</a><a href="request-ride.html">Request a Ride</a><a href="riders.html">Riders</a></nav></header>
+<main class="section dashboard-page"><div class="dashboard-head"><div><div class="eyebrow dark">PRIVATE DEVELOPMENT PREVIEW</div><h2>Rider Dashboard</h2><p>One place for rides, wallet, ratings, payments and profile.</p></div><a class="button primary" href="request-ride.html">Request a Ride</a></div>
 <div class="dashboard-grid">
-  <section class="dashboard-card dashboard-wallet">
-    <div class="dashboard-card-top"><div><span class="dash-label">RIDER WALLET</span><strong class="dash-balance">$0.00</strong><small>Available balance</small></div><a href="wallets.html">Open Wallet →</a></div>
-    <div class="dash-stats"><div><b>$0.00</b><span>Pending</span></div><div><b>$0.00</b><span>Credits</span></div><div><b>0</b><span>Transactions</span></div></div>
-  </section>
-
-  <section class="dashboard-card">
-    <div class="dashboard-card-top"><div><span class="dash-label">UPCOMING / ACTIVE</span><h3>No active ride</h3></div><a href="request-ride.html">Plan ride →</a></div>
-    <p>Current and scheduled rides will appear here after verified Rider Sign In is connected.</p>
-  </section>
-
-  <section class="dashboard-card">
-    <span class="dash-label">RECENT TRIPS</span>
-    <div class="empty-dashboard-state">No completed trips yet.</div>
-  </section>
-
-  <section class="dashboard-card">
-    <span class="dash-label">RATINGS</span>
-    <h3>5.0 ★</h3>
-    <p>Your rider rating from completed trips will appear here.</p>
-  </section>
-
-  <section class="dashboard-card">
-    <span class="dash-label">PAYMENTS</span>
-    <h3>Payment methods</h3>
-    <p>Apple Pay and debit/credit card will be available through the secure payment backend. PayPal remains planned.</p>
-    <button class="button secondary dark-outline dashboard-demo-action" type="button" data-dashboard-action="payment">Manage payment methods</button>
-  </section>
-
-  <section class="dashboard-card">
-    <span class="dash-label">PROFILE & SAFETY</span>
-    <h3>Rider account</h3>
-    <p>Verified phone, emergency settings, trip support and account preferences will live here.</p>
-    <button class="button secondary dark-outline dashboard-demo-action" type="button" data-dashboard-action="profile">Open profile settings</button>
-  </section>
-</div>
-<div id="dashboardStatus" class="form-status" role="status"></div>
-</main>
-<script src="app.js"></script>
-</body></html>
+<section class="dashboard-card dashboard-wallet"><div class="dashboard-card-top"><div><span class="dash-label">RIDER WALLET</span><strong class="dash-balance">$0.00</strong><small>Available balance</small></div><a href="wallets.html">Open Wallet →</a></div><div class="dash-stats"><div><b>$0.00</b><span>Pending</span></div><div><b>$0.00</b><span>Credits</span></div><div><b>0</b><span>Transactions</span></div></div></section>
+<section class="dashboard-card"><div class="dashboard-card-top"><div><span class="dash-label">UPCOMING / ACTIVE</span><h3>No active ride</h3></div><a href="request-ride.html">Plan ride →</a></div><p>Current and scheduled rides will appear here after verified Rider Sign In is connected.</p></section>
+<section class="dashboard-card"><span class="dash-label">RECENT TRIPS</span><div class="empty-dashboard-state">No completed trips yet.</div></section>
+<section class="dashboard-card"><span class="dash-label">RATINGS</span><h3>5.0 ★</h3><p>Your rider rating from completed trips will appear here.</p></section>
+<section class="dashboard-card"><span class="dash-label">PAYMENTS</span><h3>Payment methods</h3><p>Apple Pay and debit/credit card will be available through the secure payment backend. PayPal remains planned.</p><button class="button secondary dark-outline dashboard-demo-action" type="button" data-dashboard-action="payment">Manage payment methods</button></section>
+<section class="dashboard-card"><span class="dash-label">PROFILE & SAFETY</span><h3>Rider account</h3><p>Verified phone, emergency settings, trip support and account preferences will live here.</p><button class="button secondary dark-outline dashboard-demo-action" type="button" data-dashboard-action="profile">Open profile settings</button></section>
+</div><div id="dashboardStatus" class="form-status" role="status"></div></main><script src="app.js"></script></body></html>
