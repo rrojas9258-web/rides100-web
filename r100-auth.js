@@ -120,7 +120,13 @@ async function wireAuthPage() {
     });
 
     if (document.body.dataset.r100Role === 'driver') {
-      const status = await driverStatus().catch(() => null);
+      let status = await driverStatus().catch(() => null);
+      if (!status) {
+        try {
+          const enrolled = await callRides('enrollDriver', {});
+          status = enrolled?.driver || null;
+        } catch {}
+      }
       const pill = document.querySelector('[data-driver-approval]');
       if (pill) pill.textContent = status?.status ? status.status.toUpperCase() : 'NOT ENROLLED';
     }
