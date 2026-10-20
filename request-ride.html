@@ -32,6 +32,23 @@
 <form class="card request-form" id="webRideRequestForm">
 <label class="form-field"><span>Pickup</span><input id="webPickup" type="text" autocomplete="street-address" placeholder="Pickup location" required></label>
 <label class="form-field"><span>Destination</span><input id="webDestination" type="text" autocomplete="street-address" placeholder="Where are you going?" required></label>
+<div class="ride-extras-card">
+  <div class="ride-extra-row">
+    <div><strong>Ride for someone else</strong><small>Send the rider trip details and driver information.</small></div>
+    <button type="button" class="mini-toggle" id="rideForSomeoneElse" aria-pressed="false">Off</button>
+  </div>
+  <div id="guestRiderFields" class="guest-rider-fields" hidden>
+    <label class="form-field"><span>Rider name</span><input id="guestRiderName" type="text" maxlength="100" autocomplete="name" placeholder="Passenger name"></label>
+    <label class="form-field"><span>Rider phone</span><input id="guestRiderPhone" type="tel" maxlength="30" autocomplete="tel" placeholder="Mobile number"></label>
+  </div>
+  <div class="ride-extra-row">
+    <div><strong>Add a stop</strong><small>Add one intermediate stop to this request.</small></div>
+    <button type="button" class="mini-toggle" id="addRideStop" aria-pressed="false">Add stop</button>
+  </div>
+  <div id="rideStopFields" class="ride-stop-fields" hidden>
+    <label class="form-field"><span>Stop</span><input id="webStop1" type="text" maxlength="180" autocomplete="off" placeholder="Add stop location"></label>
+  </div>
+</div>
 <div class="schedule-section">
   <span class="ride-category-label">When do you need the ride?</span>
   <div class="schedule-toggle" role="radiogroup" aria-label="Ride timing">
@@ -70,6 +87,13 @@
 
 <input type="hidden" id="webRideType" value="standard">
 <div class="request-security-note">A verified Rider Sign In will be required before any request can be transmitted to drivers.</div>
+<section class="rider-safety-shield" id="riderSafetyShield">
+  <div>
+    <span class="dash-label">SAFETY SHIELD</span>
+    <strong>Safety tools stay one tap away.</strong>
+    <small>Ride PIN · Share Trip · Emergency Contacts · Report Issue · 911 access when live ride safety is activated.</small>
+  </div>
+</section>
 <button class="button primary request-submit" type="submit">Continue to Rider Sign In</button>
 <div id="webRideStatus" class="form-status" role="status" aria-live="polite"></div>
 </form>
