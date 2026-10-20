@@ -166,6 +166,9 @@ if (webRideRequestForm) {
     const pickup = document.getElementById('webPickup')?.value.trim() || '';
     const destination = document.getElementById('webDestination')?.value.trim() || '';
     const rideType = document.getElementById('webRideType')?.value || 'standard';
+    const requestMode = document.getElementById('webRequestMode')?.value || 'now';
+    const scheduleDate = document.getElementById('webScheduleDate')?.value || '';
+    const scheduleTime = document.getElementById('webScheduleTime')?.value || '';
     const status = document.getElementById('webRideStatus');
 
     if (!pickup || !destination) {
@@ -173,8 +176,24 @@ if (webRideRequestForm) {
       return;
     }
 
-    sessionStorage.setItem('r100PendingRide', JSON.stringify({ pickup, destination, rideType }));
-    if (status) status.textContent = 'Rider Sign In is required before a live request can be sent.';
+    let scheduledFor = null;
+    if (requestMode === 'advance') {
+      if (!scheduleDate || !scheduleTime) {
+        if (status) status.textContent = 'Choose a date and time for your advance request.';
+        return;
+      }
+      const selected = new Date(`${scheduleDate}T${scheduleTime}`);
+      if (!Number.isFinite(selected.getTime()) || selected.getTime() <= Date.now()) {
+        if (status) status.textContent = 'Choose a future date and time.';
+        return;
+      }
+      scheduledFor = selected.toISOString();
+    }
+
+    sessionStorage.setItem('r100PendingRide', JSON.stringify({ pickup, destination, rideType, requestMode, scheduledFor }));
+    if (status) status.textContent = requestMode === 'advance'
+      ? 'Advance request saved. Rider Sign In is required before scheduling can be confirmed.'
+      : 'Rider Sign In is required before a live request can be sent.';
     window.location.href = 'rider-signin.html?next=request-ride';
   });
 }
@@ -191,6 +210,31 @@ rideCategoryCards.forEach((card) => {
     webRideTypeInput.value = type;
     rideCategoryCards.forEach((item) => {
       const active = item === card;
+      item.classList.toggle('active', active);
+      item.setAttribute('aria-pressed', String(active));
+    });
+  });
+});
+
+
+const scheduleOptions = document.querySelectorAll('.schedule-option');
+const webRequestMode = document.getElementById('webRequestMode');
+const scheduleFields = document.getElementById('scheduleFields');
+const webScheduleDate = document.getElementById('webScheduleDate');
+
+if (webScheduleDate) {
+  const today = new Date();
+  const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  webScheduleDate.min = localToday;
+}
+
+scheduleOptions.forEach((option) => {
+  option.addEventListener('click', () => {
+    const mode = option.dataset.requestMode === 'advance' ? 'advance' : 'now';
+    if (webRequestMode) webRequestMode.value = mode;
+    if (scheduleFields) scheduleFields.hidden = mode !== 'advance';
+    scheduleOptions.forEach((item) => {
+      const active = item === option;
       item.classList.toggle('active', active);
       item.setAttribute('aria-pressed', String(active));
     });
