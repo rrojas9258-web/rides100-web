@@ -1,3 +1,5 @@
+const RIDES100_PLATFORM_FEE_RATE = 0.17;
+
 const pickup = document.getElementById('pickupInput');
 const destination = document.getElementById('destinationInput');
 const button = document.getElementById('previewOffersButton');
@@ -840,5 +842,15 @@ driverSendCounter?.addEventListener('click', () => {
   if (driverNetOffer) driverNetOffer.textContent = formatted;
   if (driverAcceptNetOffer) driverAcceptNetOffer.textContent = 'Accept ' + formatted;
   if (driverCounterPanel) driverCounterPanel.hidden = true;
+  const riderTotalInternal = grossFromDriverNet(value);
   if (status) status.textContent = 'Counter sent for ' + formatted + ' net earnings. Rider total is calculated internally and is not shown to the driver.';
+  // Development preview only: riderTotalInternal is intentionally not rendered on the driver UI.
 });
+
+
+function grossFromDriverNet(netAmount, feeRate = RIDES100_PLATFORM_FEE_RATE) {
+  const net = Number(netAmount);
+  const rate = Number(feeRate);
+  if (!Number.isFinite(net) || net <= 0 || !Number.isFinite(rate) || rate < 0 || rate >= 1) return null;
+  return Math.round((net / (1 - rate)) * 100) / 100;
+}
