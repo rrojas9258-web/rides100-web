@@ -205,3 +205,16 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .schedule-fields .form-field{margin-bottom:0}
 .schedule-help{grid-column:1/-1;margin:0}
 @media(max-width:620px){.schedule-fields{grid-template-columns:1fr}.schedule-help{grid-column:auto}}
+
+.business-hero{max-width:1180px;margin:0 auto}
+.business-request-wrap{max-width:1050px;margin:0 auto}
+.business-form textarea{width:100%;border:1px solid #ccd7e2;border-radius:12px;padding:13px 14px;font:inherit;color:#102033;background:#fff;resize:vertical}
+.business-form textarea:focus{border-color:#8ECDF4;outline:3px solid rgba(142,205,244,.28)}
+.business-fleet{margin:6px 0 20px}
+.business-fleet-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.business-fleet-card{display:block;border:1px solid #d9e4ef;border-radius:16px;padding:14px;background:#fff}
+.business-fleet-card strong{display:block;color:#102033}
+.business-fleet-card small{display:block;color:#6b7280;margin:3px 0 10px}
+.business-fleet-card input{width:100%;border:1px solid #ccd7e2;border-radius:10px;padding:10px 12px;font:inherit}
+@media(max-width:900px){.business-fleet-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.business-fleet-grid{grid-template-columns:1fr}}
