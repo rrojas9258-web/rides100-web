@@ -306,3 +306,18 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .business-status-flow span{position:relative;padding:7px 10px;border-radius:999px;background:#eef2f6;color:#7b8794;font-size:9px;font-weight:950;letter-spacing:.5px}
 .business-status-flow span.active{background:#0b1f33;color:#fff}
 .business-status-flow span.done{background:#e7f7ef;color:#19724a}
+
+.assignment-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.assignment-summary div{border:1px solid #e3e9ef;background:#f8fafc;border-radius:13px;padding:12px}
+.assignment-summary span{display:block;font-size:9px;font-weight:900;color:#7b8794;text-transform:uppercase}
+.assignment-summary strong{display:block;font-size:22px;margin-top:4px;color:#102033}
+.assignment-form{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(180px,.7fr) auto;gap:10px;margin-bottom:14px}
+.assignment-form input,.assignment-form select{width:100%;border:1px solid #ccd7e2;border-radius:12px;padding:12px 13px;font:inherit;background:#fff;color:#102033}
+.assignment-list{display:grid;gap:10px}
+.assignment-row{display:grid;grid-template-columns:minmax(0,1fr) 160px auto;gap:10px;align-items:center;border:1px solid #e1e7ed;border-radius:14px;padding:12px;background:#fff}
+.assignment-row-main strong{display:block;color:#102033}
+.assignment-row-main span{display:block;margin-top:3px;font-size:10px;color:#7b8794}
+.assignment-status{border:1px solid #ccd7e2;border-radius:10px;padding:9px 10px;font:inherit;background:#fff}
+.assignment-remove{border:0;background:#fff0f0;color:#a82e2e;border-radius:10px;padding:9px 11px;font-weight:900;cursor:pointer}
+@media(max-width:760px){.assignment-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.assignment-form,.assignment-row{grid-template-columns:1fr}}
+@media(max-width:520px){.assignment-summary{grid-template-columns:1fr 1fr}}
