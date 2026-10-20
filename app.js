@@ -1080,3 +1080,19 @@ function renderBusinessOptionPanels() {
 businessRideMode?.addEventListener('change', renderBusinessOptionPanels);
 businessTripFormat?.addEventListener('change', renderBusinessOptionPanels);
 renderBusinessOptionPanels();
+
+
+document.querySelectorAll('[data-safety-action]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const action = button.dataset.safetyAction || '';
+    const status = document.getElementById('dashboardStatus');
+    const messages = {
+      pin: 'Ride PIN preview: production rides will show a secure verification PIN before trip start.',
+      share: 'Share Trip preview: live trip sharing will activate only during an authenticated ride.',
+      contacts: 'Emergency Contacts preview: saved contacts will require verified account settings.',
+      report: 'Report Issue preview: safety reporting will connect to the protected support workflow.',
+      '911': '911 access is not activated in this development preview. In production, emergency access will use the device emergency flow.',
+    };
+    if (status) status.textContent = messages[action] || 'Safety tool is not active in this development preview.';
+  });
+});
