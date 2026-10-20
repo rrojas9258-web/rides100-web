@@ -2419,3 +2419,184 @@ driverPickupEtaButton?.addEventListener('click', () => {
     maximumAge: 15000,
   });
 });
+
+
+async function loadDriverLifecycle() {
+  const title = document.getElementById('driverLifecycleTitle');
+  const route = document.getElementById('driverLifecycleRoute');
+  if (!title || !route || !window.R100Auth?.callRides) return;
+
+  const statusNode = document.getElementById('dashboardStatus');
+  const enRoute = document.getElementById('driverGoEnRoute');
+  const arrived = document.getElementById('driverMarkArrived');
+  const verifyPin = document.getElementById('driverVerifyRidePin');
+  const complete = document.getElementById('driverCompleteRide');
+  const pinInput = document.getElementById('driverRidePinInput');
+
+  try {
+    const result = await window.R100Auth.callRides('driverActiveRide');
+    const ride = result?.ride || null;
+
+    [enRoute, arrived, verifyPin, complete].forEach((button) => { if (button) button.disabled = true; });
+
+    if (!ride) {
+      title.textContent = 'No active accepted ride';
+      route.textContent = 'Accept a ride to unlock trip controls.';
+      if (pinInput) pinInput.value = '';
+      return;
+    }
+
+    title.textContent = String(ride.status || 'active').replace('_', ' ').toUpperCase();
+    route.textContent = (ride.pickup_label || 'Pickup') + ' → ' + (ride.destination_label || 'Destination');
+    if (enRoute) enRoute.disabled = ride.status !== 'accepted';
+    if (arrived) arrived.disabled = ride.status !== 'en_route';
+    if (verifyPin) verifyPin.disabled = ride.status !== 'arrived';
+    if (complete) complete.disabled = ride.status !== 'in_progress';
+
+    const hidden = document.getElementById('driverLiveRideId');
+    if (hidden) hidden.value = ride.id || '';
+  } catch (error) {
+    if (statusNode) statusNode.textContent = error instanceof Error ? error.message : 'Could not load active ride.';
+  }
+}
+
+async function setDriverLifecycleStatus(nextStatus) {
+  const rideId = document.getElementById('driverLiveRideId')?.value || '';
+  const statusNode = document.getElementById('dashboardStatus');
+  if (!rideId || !window.R100Auth?.callRides) {
+    if (statusNode) statusNode.textContent = 'No active ride selected.';
+    return;
+  }
+  try {
+    await window.R100Auth.callRides('driverSetRideStatus', { rideId, status: nextStatus });
+    if (statusNode) statusNode.textContent = 'Ride status updated securely.';
+    await loadDriverLifecycle();
+    await loadDriverLiveFeed();
+  } catch (error) {
+    if (statusNode) statusNode.textContent = error instanceof Error ? error.message : 'Could not update ride status.';
+  }
+}
+
+document.getElementById('driverGoEnRoute')?.addEventListener('click', () => setDriverLifecycleStatus('en_route'));
+document.getElementById('driverMarkArrived')?.addEventListener('click', () => setDriverLifecycleStatus('arrived'));
+document.getElementById('driverCompleteRide')?.addEventListener('click', () => setDriverLifecycleStatus('completed'));
+
+document.getElementById('driverVerifyRidePin')?.addEventListener('click', async () => {
+  const rideId = document.getElementById('driverLiveRideId')?.value || '';
+  const pin = document.getElementById('driverRidePinInput')?.value.trim() || '';
+  const statusNode = document.getElementById('dashboardStatus');
+  if (!/^[0-9]{4}$/.test(pin)) {
+    if (statusNode) statusNode.textContent = 'Enter the 4-digit ride PIN.';
+    return;
+  }
+  try {
+    await window.R100Auth.callRides('driverVerifyPin', { rideId, pin });
+    const pinInput = document.getElementById('driverRidePinInput');
+    if (pinInput) pinInput.value = '';
+    if (statusNode) statusNode.textContent = 'Ride PIN verified. Ride started.';
+    await loadDriverLifecycle();
+  } catch (error) {
+    if (statusNode) statusNode.textContent = error instanceof Error ? error.message : 'Could not verify ride PIN.';
+  }
+});
+
+let r100DriverLocationWatchId = null;
+
+function startDriverLocationWatch() {
+  if (!navigator.geolocation || r100DriverLocationWatchId !== null) return;
+  const statusNode = document.getElementById('dashboardStatus');
+
+  r100DriverLocationWatchId = navigator.geolocation.watchPosition(async (position) => {
+    const rideId = document.getElementById('driverLiveRideId')?.value || '';
+    if (!rideId || !window.R100Auth?.callRides) return;
+
+    try {
+      await window.R100Auth.callRides('driverUpdateLocation', {
+        rideId,
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy,
+      });
+    } catch (error) {
+      if (statusNode) statusNode.textContent = error instanceof Error ? error.message : 'Could not update live location.';
+    }
+  }, () => {
+    if (statusNode) statusNode.textContent = 'Location permission is required for live trip tracking.';
+  }, {
+    enableHighAccuracy: true,
+    maximumAge: 10000,
+    timeout: 15000,
+  });
+}
+
+function stopDriverLocationWatch() {
+  if (r100DriverLocationWatchId !== null && navigator.geolocation) {
+    navigator.geolocation.clearWatch(r100DriverLocationWatchId);
+    r100DriverLocationWatchId = null;
+  }
+}
+
+async function refreshDriverTrackingState() {
+  if (!window.R100Auth?.callRides) return;
+  try {
+    const result = await window.R100Auth.callRides('driverActiveRide');
+    const status = result?.ride?.status || null;
+    if (['accepted','en_route','arrived','in_progress'].includes(status)) startDriverLocationWatch();
+    else stopDriverLocationWatch();
+  } catch {}
+}
+
+window.addEventListener('r100-auth-ready', () => {
+  loadDriverLifecycle();
+  refreshDriverTrackingState();
+});
+if (window.R100Auth) {
+  loadDriverLifecycle();
+  refreshDriverTrackingState();
+}
+
+async function refreshRiderTripStatus() {
+  const lifecycle = document.getElementById('riderRideLifecycle');
+  const statusLabel = document.getElementById('riderRideLifecycleStatus');
+  const pinLabel = document.getElementById('riderRidePin');
+  const locationLabel = document.getElementById('riderDriverLocationStatus');
+  if (!lifecycle || !window.R100Auth?.callRides) return;
+
+  const lastRideId = sessionStorage.getItem('r100LastRideId') || '';
+  let rideId = lastRideId;
+  if (!rideId) {
+    try {
+      const feed = await window.R100Auth.callRides('riderFeed');
+      const active = Array.isArray(feed?.rides) ? feed.rides.find((r) => ['accepted','en_route','arrived','in_progress'].includes(r.status)) : null;
+      rideId = active?.id || '';
+    } catch {}
+  }
+
+  if (!rideId) {
+    lifecycle.hidden = true;
+    return;
+  }
+
+  try {
+    const result = await window.R100Auth.callRides('riderTripStatus', { rideId });
+    const ride = result?.ride || null;
+    if (!ride) {
+      lifecycle.hidden = true;
+      return;
+    }
+
+    lifecycle.hidden = false;
+    if (statusLabel) statusLabel.textContent = String(ride.status || '—').replace('_', ' ').toUpperCase();
+    if (pinLabel) pinLabel.textContent = ride.ridePin || (ride.status === 'in_progress' ? 'Verified' : '—');
+    if (locationLabel) {
+      locationLabel.textContent = ride.driverLocation
+        ? 'Live location received'
+        : ['accepted','en_route','arrived','in_progress'].includes(ride.status)
+          ? 'Waiting for driver location'
+          : 'Not active';
+    }
+  } catch {}
+}
+
+window.addEventListener('r100-auth-ready', refreshRiderTripStatus);
+if (window.R100Auth) refreshRiderTripStatus();
