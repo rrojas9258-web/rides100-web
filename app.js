@@ -987,9 +987,23 @@ driverAcceptNetOffer?.addEventListener('click', async () => {
   }
 });
 
-driverDeclineNetOffer?.addEventListener('click', () => {
+driverDeclineNetOffer?.addEventListener('click', async () => {
   const status = document.getElementById('dashboardStatus');
-  if (status) status.textContent = 'Decline is UI-only until the protected decline endpoint is added. No backend change was made.';
+  const rideId = driverLiveRideId?.value || '';
+  if (!rideId || !window.R100Auth?.callRides) {
+    if (status) status.textContent = 'No live ride request is selected.';
+    return;
+  }
+  driverDeclineNetOffer.disabled = true;
+  try {
+    await window.R100Auth.callRides('driverDecline', { rideId });
+    if (status) status.textContent = 'Ride declined securely.';
+    await loadDriverLiveFeed();
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not decline ride.';
+  } finally {
+    driverDeclineNetOffer.disabled = false;
+  }
 });
 
 driverSendCounter?.addEventListener('click', async () => {
@@ -1227,3 +1241,86 @@ document.querySelectorAll('[data-safety-action]').forEach((button) => {
     if (status) status.textContent = messages[action] || 'Safety tool is not active in this development preview.';
   });
 });
+
+
+async function loadRiderLivePanel() {
+  const title = document.getElementById('riderLiveRideTitle');
+  const route = document.getElementById('riderLiveRideRoute');
+  const offersBox = document.getElementById('riderCounterOffers');
+  if (!title || !route || !offersBox || !window.R100Auth?.callRides) return;
+
+  const dashboardStatus = document.getElementById('dashboardStatus');
+  try {
+    const result = await window.R100Auth.callRides('riderFeed');
+    const rides = Array.isArray(result?.rides) ? result.rides : [];
+    const ride = rides.find((item) => ['open','negotiating','accepted'].includes(item.status)) || rides[0] || null;
+
+    if (!ride) {
+      title.textContent = 'No active ride';
+      route.textContent = 'Request a ride when you are ready.';
+      offersBox.innerHTML = '<div class="empty-dashboard-state">No driver responses yet.</div>';
+      return;
+    }
+
+    title.textContent = ride.status === 'accepted'
+      ? 'Driver accepted'
+      : ride.status === 'negotiating'
+        ? 'Negotiation in progress'
+        : 'Looking for a driver';
+    route.textContent = (ride.pickup_label || 'Pickup') + ' → ' + (ride.destination_label || 'Destination');
+
+    if (ride.status === 'accepted') {
+      offersBox.innerHTML = '<div class="empty-dashboard-state">Your ride is accepted. Trip details will continue here.</div>';
+      return;
+    }
+
+    const offerResult = await window.R100Auth.callRides('riderOffers', { rideId: ride.id });
+    const offers = Array.isArray(offerResult?.offers) ? offerResult.offers : [];
+    offersBox.innerHTML = '';
+
+    if (!offers.length) {
+      offersBox.innerHTML = '<div class="empty-dashboard-state">No driver responses yet.</div>';
+      return;
+    }
+
+    offers.forEach((offer) => {
+      const row = document.createElement('div');
+      row.className = 'rider-offer-row';
+
+      const amount = document.createElement('strong');
+      amount.textContent = '$' + (Number(offer.rider_total_cents || 0) / 100).toFixed(2);
+
+      const label = document.createElement('span');
+      label.textContent = 'Driver counter offer';
+
+      const accept = document.createElement('button');
+      accept.type = 'button';
+      accept.className = 'button primary';
+      accept.textContent = 'Accept';
+      accept.addEventListener('click', async () => {
+        accept.disabled = true;
+        try {
+          const accepted = await window.R100Auth.callRides('riderAcceptCounter', {
+            rideId: ride.id,
+            offerId: offer.id,
+          });
+          if (dashboardStatus) dashboardStatus.textContent = 'Counter accepted at $' + (Number(accepted?.riderTotalCents || 0) / 100).toFixed(2) + '.';
+          await loadRiderLivePanel();
+        } catch (error) {
+          if (dashboardStatus) dashboardStatus.textContent = error instanceof Error ? error.message : 'Could not accept counter.';
+          accept.disabled = false;
+        }
+      });
+
+      const text = document.createElement('div');
+      text.append(amount, label);
+      row.append(text, accept);
+      offersBox.appendChild(row);
+    });
+  } catch (error) {
+    if (dashboardStatus) dashboardStatus.textContent = error instanceof Error ? error.message : 'Could not load rider status.';
+  }
+}
+
+window.addEventListener('r100-auth-ready', loadRiderLivePanel);
+if (window.R100Auth) loadRiderLivePanel();
