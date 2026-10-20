@@ -24,13 +24,18 @@ const mobileMenu = document.getElementById('mobileMenu');
 if (menuToggle && mobileMenu) {
   menuToggle.addEventListener('click', () => {
     mobileMenu.hidden = !mobileMenu.hidden;
-    menuToggle.textContent = mobileMenu.hidden ? '☰' : '×';
+    const open = !mobileMenu.hidden;
+    menuToggle.textContent = open ? '×' : '☰';
+    menuToggle.setAttribute('aria-expanded', String(open));
+    menuToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
   });
 
   mobileMenu.querySelectorAll('a').forEach((link) => {
     link.addEventListener('click', () => {
       mobileMenu.hidden = true;
       menuToggle.textContent = '☰';
+      menuToggle.setAttribute('aria-expanded', 'false');
+      menuToggle.setAttribute('aria-label', 'Open menu');
     });
   });
 }
