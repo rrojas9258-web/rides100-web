@@ -136,3 +136,11 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
   html{scroll-behavior:auto}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
+
+.ecosystem-grid-card{margin-top:30px}
+.ecosystem-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.eco-tile{border:1px solid #d9e4ef;background:#fff;border-radius:16px;padding:18px 14px;font:inherit;font-weight:900;color:#102033;cursor:pointer;box-shadow:0 8px 22px rgba(16,32,51,.05);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.eco-tile:hover,.eco-tile:focus-visible{transform:translateY(-2px);border-color:#8ECDF4;box-shadow:0 12px 28px rgba(16,32,51,.10)}
+.eco-tile.featured{background:#0b1f33;color:#fff;border-color:#0b1f33}
+@media(max-width:900px){.ecosystem-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.ecosystem-grid{grid-template-columns:1fr}}
