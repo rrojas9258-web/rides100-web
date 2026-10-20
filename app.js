@@ -854,3 +854,142 @@ function grossFromDriverNet(netAmount, feeRate = RIDES100_PLATFORM_FEE_RATE) {
   if (!Number.isFinite(net) || net <= 0 || !Number.isFinite(rate) || rate < 0 || rate >= 1) return null;
   return Math.round((net / (1 - rate)) * 100) / 100;
 }
+
+
+const R100_ADDRESS_SEARCH_URL = 'https://utpprhmhbnioisavfdst.supabase.co/functions/v1/r100-address-search';
+
+function makeSearchSessionToken() {
+  if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+function attachR100AddressAutocomplete(input) {
+  if (!input || input.dataset.r100Autocomplete === 'ready') return;
+  input.dataset.r100Autocomplete = 'ready';
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('autocomplete', 'off');
+
+  const host = document.createElement('div');
+  host.className = 'r100-address-search';
+  input.parentNode?.insertBefore(host, input);
+  host.appendChild(input);
+
+  const list = document.createElement('div');
+  list.className = 'r100-suggestions';
+  list.setAttribute('role', 'listbox');
+  list.hidden = true;
+  host.appendChild(list);
+
+  let sessionToken = makeSearchSessionToken();
+  let timer = null;
+  let controller = null;
+
+  function closeList() {
+    list.hidden = true;
+    list.innerHTML = '';
+    input.setAttribute('aria-expanded', 'false');
+  }
+
+  async function retrieveSuggestion(suggestion) {
+    try {
+      const response = await fetch(R100_ADDRESS_SEARCH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'retrieve', id: suggestion.id, sessionToken }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.result) throw new Error(data?.error || 'Could not retrieve address.');
+
+      const result = data.result;
+      input.value = result.fullAddress || result.name || suggestion.fullAddress || suggestion.name;
+      input.dataset.mapboxId = result.mapboxId || suggestion.id || '';
+      input.dataset.latitude = Number.isFinite(result.latitude) ? String(result.latitude) : '';
+      input.dataset.longitude = Number.isFinite(result.longitude) ? String(result.longitude) : '';
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      closeList();
+      sessionToken = makeSearchSessionToken();
+    } catch {
+      closeList();
+    }
+  }
+
+  async function runSuggest() {
+    const q = input.value.trim();
+    if (q.length < 2) {
+      closeList();
+      return;
+    }
+
+    controller?.abort();
+    controller = new AbortController();
+
+    try {
+      const response = await fetch(R100_ADDRESS_SEARCH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'suggest', q, sessionToken }),
+        signal: controller.signal,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !Array.isArray(data?.suggestions)) {
+        closeList();
+        return;
+      }
+
+      list.innerHTML = '';
+      data.suggestions.forEach((suggestion) => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'r100-suggestion';
+        option.setAttribute('role', 'option');
+
+        const name = document.createElement('strong');
+        name.textContent = suggestion.name || '';
+        const address = document.createElement('span');
+        address.textContent = suggestion.fullAddress || suggestion.placeFormatted || '';
+
+        option.append(name, address);
+        option.addEventListener('mousedown', (event) => event.preventDefault());
+        option.addEventListener('click', () => retrieveSuggestion(suggestion));
+        list.appendChild(option);
+      });
+
+      list.hidden = data.suggestions.length === 0;
+      input.setAttribute('aria-expanded', String(data.suggestions.length > 0));
+    } catch (error) {
+      if (error?.name !== 'AbortError') closeList();
+    }
+  }
+
+  input.addEventListener('input', () => {
+    delete input.dataset.mapboxId;
+    delete input.dataset.latitude;
+    delete input.dataset.longitude;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(runSuggest, 250);
+  });
+
+  input.addEventListener('focus', () => {
+    if (input.value.trim().length >= 2 && list.childElementCount > 0) {
+      list.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(closeList, 120);
+  });
+
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeList();
+  });
+}
+
+['pickupInput','destinationInput','webPickup','webDestination','businessPickup','businessDestination']
+  .map((id) => document.getElementById(id))
+  .filter(Boolean)
+  .forEach(attachR100AddressAutocomplete);
