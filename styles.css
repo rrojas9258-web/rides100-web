@@ -321,3 +321,18 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .assignment-remove{border:0;background:#fff0f0;color:#a82e2e;border-radius:10px;padding:9px 11px;font-weight:900;cursor:pointer}
 @media(max-width:760px){.assignment-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.assignment-form,.assignment-row{grid-template-columns:1fr}}
 @media(max-width:520px){.assignment-summary{grid-template-columns:1fr 1fr}}
+
+.driver-business-assignment-list{display:grid;gap:12px;margin-top:12px}
+.driver-business-invite{border:1px solid #dfe7ef;border-radius:15px;padding:14px;background:#f9fbfd}
+.driver-business-invite h4{margin:0 0 4px;font-size:16px;color:#102033}
+.driver-business-invite p{margin:0;color:#69707d;font-size:11px}
+.driver-business-invite-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.driver-business-invite-meta div{background:#fff;border:1px solid #e4eaf0;border-radius:10px;padding:9px}
+.driver-business-invite-meta span{display:block;font-size:9px;color:#7b8794;text-transform:uppercase;font-weight:900}
+.driver-business-invite-meta strong{display:block;margin-top:3px;font-size:11px;color:#1d2939}
+.driver-business-response{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.driver-business-response button{border:0;cursor:pointer}
+.driver-response-status{font-size:10px;font-weight:950;padding:6px 9px;border-radius:999px;background:#eef2f6;color:#657181}
+.driver-response-status.accepted{background:#e7f7ef;color:#19724a}
+.driver-response-status.declined{background:#fff0f0;color:#a82e2e}
+@media(max-width:520px){.driver-business-invite-meta{grid-template-columns:1fr}.driver-business-response{display:grid}}
