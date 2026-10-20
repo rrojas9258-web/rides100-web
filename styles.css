@@ -122,3 +122,11 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .dark-outline{border-color:#22324a;color:#0c1625;background:#fff}
 .desktop-nav a[aria-current="page"]{color:#fff}
 @media(max-width:850px){.cta-panel{flex-direction:column;align-items:flex-start}.page-hero{padding-top:64px}}
+
+.legal-page{max-width:1180px;margin:0 auto}
+.legal-card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:32px;box-shadow:0 10px 30px rgba(16,24,40,.04)}
+.legal-card h3{font-size:20px;margin:28px 0 8px;color:#0c1625}
+.legal-card h3:first-child{margin-top:0}
+.legal-card p{color:var(--muted);line-height:1.75;margin:0}
+.legal-card a{color:#0b67a8;font-weight:800}
+@media(max-width:520px){.legal-card{padding:22px 18px}}
