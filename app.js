@@ -167,6 +167,10 @@ if (webRideRequestForm) {
     event.preventDefault();
     const pickup = document.getElementById('webPickup')?.value.trim() || '';
     const destination = document.getElementById('webDestination')?.value.trim() || '';
+    const stop1 = document.getElementById('webStop1')?.value.trim() || '';
+    const forSomeoneElse = document.getElementById('rideForSomeoneElse')?.getAttribute('aria-pressed') === 'true';
+    const guestRiderName = document.getElementById('guestRiderName')?.value.trim() || '';
+    const guestRiderPhone = document.getElementById('guestRiderPhone')?.value.trim() || '';
     const rideType = document.getElementById('webRideType')?.value || 'standard';
     const requestMode = document.getElementById('webRequestMode')?.value || 'now';
     const scheduleDate = document.getElementById('webScheduleDate')?.value || '';
@@ -192,7 +196,21 @@ if (webRideRequestForm) {
       scheduledFor = selected.toISOString();
     }
 
-    sessionStorage.setItem('r100PendingRide', JSON.stringify({ pickup, destination, rideType, requestMode, scheduledFor }));
+    if (forSomeoneElse && (!guestRiderName || !guestRiderPhone)) {
+      if (status) status.textContent = 'Enter the rider name and mobile number.';
+      return;
+    }
+
+    sessionStorage.setItem('r100PendingRide', JSON.stringify({
+      pickup,
+      destination,
+      stop1: stop1 || null,
+      rideType,
+      requestMode,
+      scheduledFor,
+      forSomeoneElse,
+      guestRider: forSomeoneElse ? { name: guestRiderName, phone: guestRiderPhone } : null,
+    }));
     if (status) status.textContent = requestMode === 'advance'
       ? 'Advance request saved. Rider Sign In is required before scheduling can be confirmed.'
       : 'Rider Sign In is required before a live request can be sent.';
@@ -989,7 +1007,31 @@ function attachR100AddressAutocomplete(input) {
   });
 }
 
-['pickupInput','destinationInput','webPickup','webDestination','businessPickup','businessDestination']
+['pickupInput','destinationInput','webPickup','webDestination','webStop1','businessPickup','businessDestination']
   .map((id) => document.getElementById(id))
   .filter(Boolean)
   .forEach(attachR100AddressAutocomplete);
+
+
+const rideForSomeoneElse = document.getElementById('rideForSomeoneElse');
+const guestRiderFields = document.getElementById('guestRiderFields');
+const addRideStop = document.getElementById('addRideStop');
+const rideStopFields = document.getElementById('rideStopFields');
+
+rideForSomeoneElse?.addEventListener('click', () => {
+  const enabled = rideForSomeoneElse.getAttribute('aria-pressed') !== 'true';
+  rideForSomeoneElse.setAttribute('aria-pressed', String(enabled));
+  rideForSomeoneElse.textContent = enabled ? 'On' : 'Off';
+  if (guestRiderFields) guestRiderFields.hidden = !enabled;
+});
+
+addRideStop?.addEventListener('click', () => {
+  const enabled = addRideStop.getAttribute('aria-pressed') !== 'true';
+  addRideStop.setAttribute('aria-pressed', String(enabled));
+  addRideStop.textContent = enabled ? 'Remove stop' : 'Add stop';
+  if (rideStopFields) rideStopFields.hidden = !enabled;
+  if (!enabled) {
+    const stop = document.getElementById('webStop1');
+    if (stop) stop.value = '';
+  }
+});
