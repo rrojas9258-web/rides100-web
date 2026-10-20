@@ -986,8 +986,1624 @@ driverAcceptNetOffer?.addEventListener('click', async () => {
   try {
     const result = await window.R100Auth.callRides('driverAccept', { rideId });
     const net = Number(result?.driverNetCents || 0) / 100;
+    if (status) status.textContent = 'Ride accepted securely at 
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not accept ride.';
+  } finally {
+    driverAcceptNetOffer.disabled = false;
+  }
+});
+
+driverDeclineNetOffer?.addEventListener('click', async () => {
+  const status = document.getElementById('dashboardStatus');
+  const rideId = driverLiveRideId?.value || '';
+  if (!rideId || !window.R100Auth?.callRides) {
+    if (status) status.textContent = 'No live ride request is selected.';
+    return;
+  }
+  driverDeclineNetOffer.disabled = true;
+  try {
+    await window.R100Auth.callRides('driverDecline', { rideId });
+    if (status) status.textContent = 'Ride declined securely.';
+    await loadDriverLiveFeed();
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not decline ride.';
+  } finally {
+    driverDeclineNetOffer.disabled = false;
+  }
+});
+
+driverSendCounter?.addEventListener('click', async () => {
+  const status = document.getElementById('dashboardStatus');
+  const rideId = driverLiveRideId?.value || '';
+  const value = Number(driverCounterNet?.value || 0);
+
+  if (!rideId || !window.R100Auth?.callRides) {
+    if (status) status.textContent = 'No live ride request is selected.';
+    return;
+  }
+  if (!Number.isFinite(value) || value <= 0) {
+    if (status) status.textContent = 'Enter the net amount you want to earn.';
+    return;
+  }
+
+  driverSendCounter.disabled = true;
+  try {
+    const formatted = '$' + value.toFixed(2);
+    await window.R100Auth.callRides('driverCounter', {
+      rideId,
+      driverNetCents: Math.round(value * 100),
+    });
+    if (driverNetOffer) driverNetOffer.textContent = formatted;
+    if (driverCounterPanel) driverCounterPanel.hidden = true;
+    if (status) status.textContent = 'Counter sent securely for ' + formatted + ' net earnings. Rider total was calculated on the server.';
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not send counter offer.';
+  } finally {
+    driverSendCounter.disabled = false;
+  }
+});
+
+window.addEventListener('r100-auth-ready', loadDriverLiveFeed);
+if (window.R100Auth) loadDriverLiveFeed();
+
+
+const R100_ADDRESS_SEARCH_URL = 'https://utpprhmhbnioisavfdst.supabase.co/functions/v1/r100-address-search';
+
+function makeSearchSessionToken() {
+  if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+function attachR100AddressAutocomplete(input) {
+  if (!input || input.dataset.r100Autocomplete === 'ready') return;
+  input.dataset.r100Autocomplete = 'ready';
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('autocomplete', 'off');
+
+  const host = document.createElement('div');
+  host.className = 'r100-address-search';
+  input.parentNode?.insertBefore(host, input);
+  host.appendChild(input);
+
+  const list = document.createElement('div');
+  list.className = 'r100-suggestions';
+  list.setAttribute('role', 'listbox');
+  list.hidden = true;
+  host.appendChild(list);
+
+  let sessionToken = makeSearchSessionToken();
+  let timer = null;
+  let controller = null;
+
+  function closeList() {
+    list.hidden = true;
+    list.innerHTML = '';
+    input.setAttribute('aria-expanded', 'false');
+  }
+
+  async function retrieveSuggestion(suggestion) {
+    try {
+      const response = await fetch(R100_ADDRESS_SEARCH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'retrieve', id: suggestion.id, sessionToken }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.result) throw new Error(data?.error || 'Could not retrieve address.');
+
+      const result = data.result;
+      input.value = result.fullAddress || result.name || suggestion.fullAddress || suggestion.name;
+      input.dataset.mapboxId = result.mapboxId || suggestion.id || '';
+      input.dataset.latitude = Number.isFinite(result.latitude) ? String(result.latitude) : '';
+      input.dataset.longitude = Number.isFinite(result.longitude) ? String(result.longitude) : '';
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      closeList();
+      sessionToken = makeSearchSessionToken();
+    } catch {
+      closeList();
+    }
+  }
+
+  async function runSuggest() {
+    const q = input.value.trim();
+    if (q.length < 2) {
+      closeList();
+      return;
+    }
+
+    controller?.abort();
+    controller = new AbortController();
+
+    try {
+      const response = await fetch(R100_ADDRESS_SEARCH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'suggest', q, sessionToken }),
+        signal: controller.signal,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !Array.isArray(data?.suggestions)) {
+        closeList();
+        return;
+      }
+
+      list.innerHTML = '';
+      data.suggestions.forEach((suggestion) => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'r100-suggestion';
+        option.setAttribute('role', 'option');
+
+        const name = document.createElement('strong');
+        name.textContent = suggestion.name || '';
+        const address = document.createElement('span');
+        address.textContent = suggestion.fullAddress || suggestion.placeFormatted || '';
+
+        option.append(name, address);
+        option.addEventListener('mousedown', (event) => event.preventDefault());
+        option.addEventListener('click', () => retrieveSuggestion(suggestion));
+        list.appendChild(option);
+      });
+
+      list.hidden = data.suggestions.length === 0;
+      input.setAttribute('aria-expanded', String(data.suggestions.length > 0));
+    } catch (error) {
+      if (error?.name !== 'AbortError') closeList();
+    }
+  }
+
+  input.addEventListener('input', () => {
+    delete input.dataset.mapboxId;
+    delete input.dataset.latitude;
+    delete input.dataset.longitude;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(runSuggest, 250);
+  });
+
+  input.addEventListener('focus', () => {
+    if (input.value.trim().length >= 2 && list.childElementCount > 0) {
+      list.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(closeList, 120);
+  });
+
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeList();
+  });
+}
+
+['pickupInput','destinationInput','webPickup','webDestination','webStop1','businessPickup','businessDestination']
+  .map((id) => document.getElementById(id))
+  .filter(Boolean)
+  .forEach(attachR100AddressAutocomplete);
+
+
+const rideForSomeoneElse = document.getElementById('rideForSomeoneElse');
+const guestRiderFields = document.getElementById('guestRiderFields');
+const addRideStop = document.getElementById('addRideStop');
+const rideStopFields = document.getElementById('rideStopFields');
+
+rideForSomeoneElse?.addEventListener('click', () => {
+  const enabled = rideForSomeoneElse.getAttribute('aria-pressed') !== 'true';
+  rideForSomeoneElse.setAttribute('aria-pressed', String(enabled));
+  rideForSomeoneElse.textContent = enabled ? 'On' : 'Off';
+  if (guestRiderFields) guestRiderFields.hidden = !enabled;
+});
+
+addRideStop?.addEventListener('click', () => {
+  const enabled = addRideStop.getAttribute('aria-pressed') !== 'true';
+  addRideStop.setAttribute('aria-pressed', String(enabled));
+  addRideStop.textContent = enabled ? 'Remove stop' : 'Add stop';
+  if (rideStopFields) rideStopFields.hidden = !enabled;
+  if (!enabled) {
+    const stop = document.getElementById('webStop1');
+    if (stop) stop.value = '';
+  }
+});
+
+
+const businessRideMode = document.getElementById('businessRideMode');
+const businessTripFormat = document.getElementById('businessTripFormat');
+const businessGuestFields = document.getElementById('businessGuestFields');
+const businessRecurringFields = document.getElementById('businessRecurringFields');
+const businessRoundTripFields = document.getElementById('businessRoundTripFields');
+
+function renderBusinessOptionPanels() {
+  if (businessGuestFields) businessGuestFields.hidden = businessRideMode?.value !== 'guest';
+  if (businessRecurringFields) businessRecurringFields.hidden = businessRideMode?.value !== 'recurring';
+  if (businessRoundTripFields) businessRoundTripFields.hidden = businessTripFormat?.value !== 'roundtrip';
+}
+businessRideMode?.addEventListener('change', renderBusinessOptionPanels);
+businessTripFormat?.addEventListener('change', renderBusinessOptionPanels);
+renderBusinessOptionPanels();
+
+
+document.querySelectorAll('[data-safety-action]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const action = button.dataset.safetyAction || '';
+    const status = document.getElementById('dashboardStatus');
+    const messages = {
+      pin: 'Ride PIN preview: production rides will show a secure verification PIN before trip start.',
+      share: 'Share Trip preview: live trip sharing will activate only during an authenticated ride.',
+      contacts: 'Emergency Contacts preview: saved contacts will require verified account settings.',
+      report: 'Report Issue preview: safety reporting will connect to the protected support workflow.',
+      '911': '911 access is not activated in this development preview. In production, emergency access will use the device emergency flow.',
+    };
+    if (status) status.textContent = messages[action] || 'Safety tool is not active in this development preview.';
+  });
+});
+
+
+async function loadRiderLivePanel() {
+  const title = document.getElementById('riderLiveRideTitle');
+  const route = document.getElementById('riderLiveRideRoute');
+  const offersBox = document.getElementById('riderCounterOffers');
+  if (!title || !route || !offersBox || !window.R100Auth?.callRides) return;
+
+  const dashboardStatus = document.getElementById('dashboardStatus');
+  try {
+    const result = await window.R100Auth.callRides('riderFeed');
+    const rides = Array.isArray(result?.rides) ? result.rides : [];
+    const ride = rides.find((item) => ['open','negotiating','accepted'].includes(item.status)) || rides[0] || null;
+
+    if (!ride) {
+      title.textContent = 'No active ride';
+      route.textContent = 'Request a ride when you are ready.';
+      offersBox.innerHTML = '<div class="empty-dashboard-state">No driver responses yet.</div>';
+      return;
+    }
+
+    title.textContent = ride.status === 'accepted'
+      ? 'Driver accepted'
+      : ride.status === 'negotiating'
+        ? 'Negotiation in progress'
+        : 'Looking for a driver';
+    route.textContent = (ride.pickup_label || 'Pickup') + ' → ' + (ride.destination_label || 'Destination');
+
+    if (ride.status === 'accepted') {
+      offersBox.innerHTML = '<div class="empty-dashboard-state">Your ride is accepted. Trip details will continue here.</div>';
+      return;
+    }
+
+    const offerResult = await window.R100Auth.callRides('riderOffers', { rideId: ride.id });
+    const offers = Array.isArray(offerResult?.offers) ? offerResult.offers : [];
+    offersBox.innerHTML = '';
+
+    if (!offers.length) {
+      offersBox.innerHTML = '<div class="empty-dashboard-state">No driver responses yet.</div>';
+      return;
+    }
+
+    offers.forEach((offer) => {
+      const row = document.createElement('div');
+      row.className = 'rider-offer-row';
+
+      const amount = document.createElement('strong');
+      amount.textContent = '$' + (Number(offer.rider_total_cents || 0) / 100).toFixed(2);
+
+      const label = document.createElement('span');
+      label.textContent = 'Driver counter offer';
+
+      const accept = document.createElement('button');
+      accept.type = 'button';
+      accept.className = 'button primary';
+      accept.textContent = 'Accept';
+      accept.addEventListener('click', async () => {
+        accept.disabled = true;
+        try {
+          const accepted = await window.R100Auth.callRides('riderAcceptCounter', {
+            rideId: ride.id,
+            offerId: offer.id,
+          });
+          if (dashboardStatus) dashboardStatus.textContent = 'Counter accepted at $' + (Number(accepted?.riderTotalCents || 0) / 100).toFixed(2) + '.';
+          await loadRiderLivePanel();
+        } catch (error) {
+          if (dashboardStatus) dashboardStatus.textContent = error instanceof Error ? error.message : 'Could not accept counter.';
+          accept.disabled = false;
+        }
+      });
+
+      const text = document.createElement('div');
+      text.append(amount, label);
+      row.append(text, accept);
+      offersBox.appendChild(row);
+    });
+  } catch (error) {
+    if (dashboardStatus) dashboardStatus.textContent = error instanceof Error ? error.message : 'Could not load rider status.';
+  }
+}
+
+window.addEventListener('r100-auth-ready', loadRiderLivePanel);
+if (window.R100Auth) loadRiderLivePanel();
+
+
+const R100_ROUTE_MAP_URL = 'https://utpprhmhbnioisavfdst.supabase.co/functions/v1/r100-route-map';
+
+function routePointFromInput(id) {
+  const input = document.getElementById(id);
+  if (!input?.value.trim()) return null;
+  const lat = Number(input.dataset.latitude);
+  const lng = Number(input.dataset.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { label: input.value.trim(), lat, lng };
+}
+
+function formatRouteMiles(meters) {
+  const miles = Number(meters || 0) / 1609.344;
+  return miles >= 10 ? miles.toFixed(1) : miles.toFixed(2);
+}
+
+function formatRouteMinutes(seconds) {
+  return Math.max(1, Math.round(Number(seconds || 0) / 60));
+}
+
+let r100RoutePreviewTimer = null;
+let r100RoutePreviewController = null;
+
+async function refreshR100RoutePreview() {
+  const image = document.getElementById('rideMapImage');
+  const empty = document.getElementById('rideMapEmpty');
+  const status = document.getElementById('rideMapStatus');
+  const title = document.getElementById('rideMapTitle');
+  const distance = document.getElementById('rideMapDistance');
+  const eta = document.getElementById('rideMapEta');
+  if (!image || !empty || !title || !distance || !eta) return;
+
+  const pickup = routePointFromInput('webPickup');
+  const destination = routePointFromInput('webDestination');
+  const stop = routePointFromInput('webStop1');
+
+  if (!pickup || !destination) {
+    image.hidden = true;
+    image.removeAttribute('src');
+    empty.hidden = false;
+    title.textContent = 'Choose pickup and destination';
+    distance.textContent = '—';
+    eta.textContent = '—';
+    if (status) status.textContent = '';
+    return;
+  }
+
+  r100RoutePreviewController?.abort();
+  r100RoutePreviewController = new AbortController();
+
+  if (status) status.textContent = 'Calculating secure route…';
+  title.textContent = stop ? 'Route with stop' : 'Direct route';
+
+  try {
+    const response = await fetch(R100_ROUTE_MAP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pickup, destination, stop }),
+      signal: r100RoutePreviewController.signal,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data?.error || 'Could not calculate route.');
+
+    distance.textContent = formatRouteMiles(data.distanceMeters);
+    eta.textContent = String(formatRouteMinutes(data.durationSeconds));
+
+    if (data.mapDataUrl) {
+      image.src = data.mapDataUrl;
+      image.hidden = false;
+      empty.hidden = true;
+    } else {
+      image.hidden = true;
+      empty.hidden = false;
+      empty.textContent = 'Route calculated, but map image is temporarily unavailable.';
+    }
+
+    if (status) status.textContent = 'Route calculated from Mapbox routing data.';
+  } catch (error) {
+    if (error?.name === 'AbortError') return;
+    image.hidden = true;
+    empty.hidden = false;
+    empty.textContent = 'Route preview is temporarily unavailable.';
+    distance.textContent = '—';
+    eta.textContent = '—';
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not calculate route.';
+  }
+}
+
+function queueR100RoutePreview() {
+  if (r100RoutePreviewTimer) clearTimeout(r100RoutePreviewTimer);
+  r100RoutePreviewTimer = setTimeout(refreshR100RoutePreview, 120);
+}
+
+['webPickup','webDestination','webStop1'].forEach((id) => {
+  document.getElementById(id)?.addEventListener('change', queueR100RoutePreview);
+});
+ + (net / miles).toFixed(2) : '—';
+    if (hourlyMetric) hourlyMetric.textContent = routeSeconds > 0 ? '~
+
+    if (dashboardStatus) dashboardStatus.textContent = 'Live request loaded securely. Driver pricing is net earnings only.';
+  } catch (error) {
+    if (dashboardStatus) dashboardStatus.textContent = error instanceof Error ? error.message : 'Could not load live requests.';
+  }
+}
+
+if (driverOpenCounter && driverCounterPanel) {
+  driverOpenCounter.addEventListener('click', () => {
+    driverCounterPanel.hidden = !driverCounterPanel.hidden;
+    if (!driverCounterPanel.hidden) driverCounterNet?.focus();
+  });
+}
+
+driverAcceptNetOffer?.addEventListener('click', async () => {
+  const status = document.getElementById('dashboardStatus');
+  const rideId = driverLiveRideId?.value || '';
+  if (!rideId || !window.R100Auth?.callRides) {
+    if (status) status.textContent = 'No live ride request is selected.';
+    return;
+  }
+
+  driverAcceptNetOffer.disabled = true;
+  try {
+    const result = await window.R100Auth.callRides('driverAccept', { rideId });
+    const net = Number(result?.driverNetCents || 0) / 100;
     if (status) status.textContent = 'Ride accepted securely at $' + net.toFixed(2) + ' net earnings.';
     await loadDriverLiveFeed();
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not accept ride.';
+  } finally {
+    driverAcceptNetOffer.disabled = false;
+  }
+});
+
+driverDeclineNetOffer?.addEventListener('click', async () => {
+  const status = document.getElementById('dashboardStatus');
+  const rideId = driverLiveRideId?.value || '';
+  if (!rideId || !window.R100Auth?.callRides) {
+    if (status) status.textContent = 'No live ride request is selected.';
+    return;
+  }
+  driverDeclineNetOffer.disabled = true;
+  try {
+    await window.R100Auth.callRides('driverDecline', { rideId });
+    if (status) status.textContent = 'Ride declined securely.';
+    await loadDriverLiveFeed();
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not decline ride.';
+  } finally {
+    driverDeclineNetOffer.disabled = false;
+  }
+});
+
+driverSendCounter?.addEventListener('click', async () => {
+  const status = document.getElementById('dashboardStatus');
+  const rideId = driverLiveRideId?.value || '';
+  const value = Number(driverCounterNet?.value || 0);
+
+  if (!rideId || !window.R100Auth?.callRides) {
+    if (status) status.textContent = 'No live ride request is selected.';
+    return;
+  }
+  if (!Number.isFinite(value) || value <= 0) {
+    if (status) status.textContent = 'Enter the net amount you want to earn.';
+    return;
+  }
+
+  driverSendCounter.disabled = true;
+  try {
+    const formatted = '$' + value.toFixed(2);
+    await window.R100Auth.callRides('driverCounter', {
+      rideId,
+      driverNetCents: Math.round(value * 100),
+    });
+    if (driverNetOffer) driverNetOffer.textContent = formatted;
+    if (driverCounterPanel) driverCounterPanel.hidden = true;
+    if (status) status.textContent = 'Counter sent securely for ' + formatted + ' net earnings. Rider total was calculated on the server.';
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not send counter offer.';
+  } finally {
+    driverSendCounter.disabled = false;
+  }
+});
+
+window.addEventListener('r100-auth-ready', loadDriverLiveFeed);
+if (window.R100Auth) loadDriverLiveFeed();
+
+
+const R100_ADDRESS_SEARCH_URL = 'https://utpprhmhbnioisavfdst.supabase.co/functions/v1/r100-address-search';
+
+function makeSearchSessionToken() {
+  if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+function attachR100AddressAutocomplete(input) {
+  if (!input || input.dataset.r100Autocomplete === 'ready') return;
+  input.dataset.r100Autocomplete = 'ready';
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('autocomplete', 'off');
+
+  const host = document.createElement('div');
+  host.className = 'r100-address-search';
+  input.parentNode?.insertBefore(host, input);
+  host.appendChild(input);
+
+  const list = document.createElement('div');
+  list.className = 'r100-suggestions';
+  list.setAttribute('role', 'listbox');
+  list.hidden = true;
+  host.appendChild(list);
+
+  let sessionToken = makeSearchSessionToken();
+  let timer = null;
+  let controller = null;
+
+  function closeList() {
+    list.hidden = true;
+    list.innerHTML = '';
+    input.setAttribute('aria-expanded', 'false');
+  }
+
+  async function retrieveSuggestion(suggestion) {
+    try {
+      const response = await fetch(R100_ADDRESS_SEARCH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'retrieve', id: suggestion.id, sessionToken }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.result) throw new Error(data?.error || 'Could not retrieve address.');
+
+      const result = data.result;
+      input.value = result.fullAddress || result.name || suggestion.fullAddress || suggestion.name;
+      input.dataset.mapboxId = result.mapboxId || suggestion.id || '';
+      input.dataset.latitude = Number.isFinite(result.latitude) ? String(result.latitude) : '';
+      input.dataset.longitude = Number.isFinite(result.longitude) ? String(result.longitude) : '';
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      closeList();
+      sessionToken = makeSearchSessionToken();
+    } catch {
+      closeList();
+    }
+  }
+
+  async function runSuggest() {
+    const q = input.value.trim();
+    if (q.length < 2) {
+      closeList();
+      return;
+    }
+
+    controller?.abort();
+    controller = new AbortController();
+
+    try {
+      const response = await fetch(R100_ADDRESS_SEARCH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'suggest', q, sessionToken }),
+        signal: controller.signal,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !Array.isArray(data?.suggestions)) {
+        closeList();
+        return;
+      }
+
+      list.innerHTML = '';
+      data.suggestions.forEach((suggestion) => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'r100-suggestion';
+        option.setAttribute('role', 'option');
+
+        const name = document.createElement('strong');
+        name.textContent = suggestion.name || '';
+        const address = document.createElement('span');
+        address.textContent = suggestion.fullAddress || suggestion.placeFormatted || '';
+
+        option.append(name, address);
+        option.addEventListener('mousedown', (event) => event.preventDefault());
+        option.addEventListener('click', () => retrieveSuggestion(suggestion));
+        list.appendChild(option);
+      });
+
+      list.hidden = data.suggestions.length === 0;
+      input.setAttribute('aria-expanded', String(data.suggestions.length > 0));
+    } catch (error) {
+      if (error?.name !== 'AbortError') closeList();
+    }
+  }
+
+  input.addEventListener('input', () => {
+    delete input.dataset.mapboxId;
+    delete input.dataset.latitude;
+    delete input.dataset.longitude;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(runSuggest, 250);
+  });
+
+  input.addEventListener('focus', () => {
+    if (input.value.trim().length >= 2 && list.childElementCount > 0) {
+      list.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(closeList, 120);
+  });
+
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeList();
+  });
+}
+
+['pickupInput','destinationInput','webPickup','webDestination','webStop1','businessPickup','businessDestination']
+  .map((id) => document.getElementById(id))
+  .filter(Boolean)
+  .forEach(attachR100AddressAutocomplete);
+
+
+const rideForSomeoneElse = document.getElementById('rideForSomeoneElse');
+const guestRiderFields = document.getElementById('guestRiderFields');
+const addRideStop = document.getElementById('addRideStop');
+const rideStopFields = document.getElementById('rideStopFields');
+
+rideForSomeoneElse?.addEventListener('click', () => {
+  const enabled = rideForSomeoneElse.getAttribute('aria-pressed') !== 'true';
+  rideForSomeoneElse.setAttribute('aria-pressed', String(enabled));
+  rideForSomeoneElse.textContent = enabled ? 'On' : 'Off';
+  if (guestRiderFields) guestRiderFields.hidden = !enabled;
+});
+
+addRideStop?.addEventListener('click', () => {
+  const enabled = addRideStop.getAttribute('aria-pressed') !== 'true';
+  addRideStop.setAttribute('aria-pressed', String(enabled));
+  addRideStop.textContent = enabled ? 'Remove stop' : 'Add stop';
+  if (rideStopFields) rideStopFields.hidden = !enabled;
+  if (!enabled) {
+    const stop = document.getElementById('webStop1');
+    if (stop) stop.value = '';
+  }
+});
+
+
+const businessRideMode = document.getElementById('businessRideMode');
+const businessTripFormat = document.getElementById('businessTripFormat');
+const businessGuestFields = document.getElementById('businessGuestFields');
+const businessRecurringFields = document.getElementById('businessRecurringFields');
+const businessRoundTripFields = document.getElementById('businessRoundTripFields');
+
+function renderBusinessOptionPanels() {
+  if (businessGuestFields) businessGuestFields.hidden = businessRideMode?.value !== 'guest';
+  if (businessRecurringFields) businessRecurringFields.hidden = businessRideMode?.value !== 'recurring';
+  if (businessRoundTripFields) businessRoundTripFields.hidden = businessTripFormat?.value !== 'roundtrip';
+}
+businessRideMode?.addEventListener('change', renderBusinessOptionPanels);
+businessTripFormat?.addEventListener('change', renderBusinessOptionPanels);
+renderBusinessOptionPanels();
+
+
+document.querySelectorAll('[data-safety-action]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const action = button.dataset.safetyAction || '';
+    const status = document.getElementById('dashboardStatus');
+    const messages = {
+      pin: 'Ride PIN preview: production rides will show a secure verification PIN before trip start.',
+      share: 'Share Trip preview: live trip sharing will activate only during an authenticated ride.',
+      contacts: 'Emergency Contacts preview: saved contacts will require verified account settings.',
+      report: 'Report Issue preview: safety reporting will connect to the protected support workflow.',
+      '911': '911 access is not activated in this development preview. In production, emergency access will use the device emergency flow.',
+    };
+    if (status) status.textContent = messages[action] || 'Safety tool is not active in this development preview.';
+  });
+});
+
+
+async function loadRiderLivePanel() {
+  const title = document.getElementById('riderLiveRideTitle');
+  const route = document.getElementById('riderLiveRideRoute');
+  const offersBox = document.getElementById('riderCounterOffers');
+  if (!title || !route || !offersBox || !window.R100Auth?.callRides) return;
+
+  const dashboardStatus = document.getElementById('dashboardStatus');
+  try {
+    const result = await window.R100Auth.callRides('riderFeed');
+    const rides = Array.isArray(result?.rides) ? result.rides : [];
+    const ride = rides.find((item) => ['open','negotiating','accepted'].includes(item.status)) || rides[0] || null;
+
+    if (!ride) {
+      title.textContent = 'No active ride';
+      route.textContent = 'Request a ride when you are ready.';
+      offersBox.innerHTML = '<div class="empty-dashboard-state">No driver responses yet.</div>';
+      return;
+    }
+
+    title.textContent = ride.status === 'accepted'
+      ? 'Driver accepted'
+      : ride.status === 'negotiating'
+        ? 'Negotiation in progress'
+        : 'Looking for a driver';
+    route.textContent = (ride.pickup_label || 'Pickup') + ' → ' + (ride.destination_label || 'Destination');
+
+    if (ride.status === 'accepted') {
+      offersBox.innerHTML = '<div class="empty-dashboard-state">Your ride is accepted. Trip details will continue here.</div>';
+      return;
+    }
+
+    const offerResult = await window.R100Auth.callRides('riderOffers', { rideId: ride.id });
+    const offers = Array.isArray(offerResult?.offers) ? offerResult.offers : [];
+    offersBox.innerHTML = '';
+
+    if (!offers.length) {
+      offersBox.innerHTML = '<div class="empty-dashboard-state">No driver responses yet.</div>';
+      return;
+    }
+
+    offers.forEach((offer) => {
+      const row = document.createElement('div');
+      row.className = 'rider-offer-row';
+
+      const amount = document.createElement('strong');
+      amount.textContent = '$' + (Number(offer.rider_total_cents || 0) / 100).toFixed(2);
+
+      const label = document.createElement('span');
+      label.textContent = 'Driver counter offer';
+
+      const accept = document.createElement('button');
+      accept.type = 'button';
+      accept.className = 'button primary';
+      accept.textContent = 'Accept';
+      accept.addEventListener('click', async () => {
+        accept.disabled = true;
+        try {
+          const accepted = await window.R100Auth.callRides('riderAcceptCounter', {
+            rideId: ride.id,
+            offerId: offer.id,
+          });
+          if (dashboardStatus) dashboardStatus.textContent = 'Counter accepted at $' + (Number(accepted?.riderTotalCents || 0) / 100).toFixed(2) + '.';
+          await loadRiderLivePanel();
+        } catch (error) {
+          if (dashboardStatus) dashboardStatus.textContent = error instanceof Error ? error.message : 'Could not accept counter.';
+          accept.disabled = false;
+        }
+      });
+
+      const text = document.createElement('div');
+      text.append(amount, label);
+      row.append(text, accept);
+      offersBox.appendChild(row);
+    });
+  } catch (error) {
+    if (dashboardStatus) dashboardStatus.textContent = error instanceof Error ? error.message : 'Could not load rider status.';
+  }
+}
+
+window.addEventListener('r100-auth-ready', loadRiderLivePanel);
+if (window.R100Auth) loadRiderLivePanel();
+
+
+const R100_ROUTE_MAP_URL = 'https://utpprhmhbnioisavfdst.supabase.co/functions/v1/r100-route-map';
+
+function routePointFromInput(id) {
+  const input = document.getElementById(id);
+  if (!input?.value.trim()) return null;
+  const lat = Number(input.dataset.latitude);
+  const lng = Number(input.dataset.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { label: input.value.trim(), lat, lng };
+}
+
+function formatRouteMiles(meters) {
+  const miles = Number(meters || 0) / 1609.344;
+  return miles >= 10 ? miles.toFixed(1) : miles.toFixed(2);
+}
+
+function formatRouteMinutes(seconds) {
+  return Math.max(1, Math.round(Number(seconds || 0) / 60));
+}
+
+let r100RoutePreviewTimer = null;
+let r100RoutePreviewController = null;
+
+async function refreshR100RoutePreview() {
+  const image = document.getElementById('rideMapImage');
+  const empty = document.getElementById('rideMapEmpty');
+  const status = document.getElementById('rideMapStatus');
+  const title = document.getElementById('rideMapTitle');
+  const distance = document.getElementById('rideMapDistance');
+  const eta = document.getElementById('rideMapEta');
+  if (!image || !empty || !title || !distance || !eta) return;
+
+  const pickup = routePointFromInput('webPickup');
+  const destination = routePointFromInput('webDestination');
+  const stop = routePointFromInput('webStop1');
+
+  if (!pickup || !destination) {
+    image.hidden = true;
+    image.removeAttribute('src');
+    empty.hidden = false;
+    title.textContent = 'Choose pickup and destination';
+    distance.textContent = '—';
+    eta.textContent = '—';
+    if (status) status.textContent = '';
+    return;
+  }
+
+  r100RoutePreviewController?.abort();
+  r100RoutePreviewController = new AbortController();
+
+  if (status) status.textContent = 'Calculating secure route…';
+  title.textContent = stop ? 'Route with stop' : 'Direct route';
+
+  try {
+    const response = await fetch(R100_ROUTE_MAP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pickup, destination, stop }),
+      signal: r100RoutePreviewController.signal,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data?.error || 'Could not calculate route.');
+
+    distance.textContent = formatRouteMiles(data.distanceMeters);
+    eta.textContent = String(formatRouteMinutes(data.durationSeconds));
+
+    if (data.mapDataUrl) {
+      image.src = data.mapDataUrl;
+      image.hidden = false;
+      empty.hidden = true;
+    } else {
+      image.hidden = true;
+      empty.hidden = false;
+      empty.textContent = 'Route calculated, but map image is temporarily unavailable.';
+    }
+
+    if (status) status.textContent = 'Route calculated from Mapbox routing data.';
+  } catch (error) {
+    if (error?.name === 'AbortError') return;
+    image.hidden = true;
+    empty.hidden = false;
+    empty.textContent = 'Route preview is temporarily unavailable.';
+    distance.textContent = '—';
+    eta.textContent = '—';
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not calculate route.';
+  }
+}
+
+function queueR100RoutePreview() {
+  if (r100RoutePreviewTimer) clearTimeout(r100RoutePreviewTimer);
+  r100RoutePreviewTimer = setTimeout(refreshR100RoutePreview, 120);
+}
+
+['webPickup','webDestination','webStop1'].forEach((id) => {
+  document.getElementById(id)?.addEventListener('change', queueR100RoutePreview);
+});
+ + ((net * 3600) / routeSeconds).toFixed(0) + '/hr' : '—';
+
+    if (dashboardStatus) dashboardStatus.textContent = 'Live request loaded securely. Driver pricing is net earnings only.';
+  } catch (error) {
+    if (dashboardStatus) dashboardStatus.textContent = error instanceof Error ? error.message : 'Could not load live requests.';
+  }
+}
+
+if (driverOpenCounter && driverCounterPanel) {
+  driverOpenCounter.addEventListener('click', () => {
+    driverCounterPanel.hidden = !driverCounterPanel.hidden;
+    if (!driverCounterPanel.hidden) driverCounterNet?.focus();
+  });
+}
+
+driverAcceptNetOffer?.addEventListener('click', async () => {
+  const status = document.getElementById('dashboardStatus');
+  const rideId = driverLiveRideId?.value || '';
+  if (!rideId || !window.R100Auth?.callRides) {
+    if (status) status.textContent = 'No live ride request is selected.';
+    return;
+  }
+
+  driverAcceptNetOffer.disabled = true;
+  try {
+    const result = await window.R100Auth.callRides('driverAccept', { rideId });
+    const net = Number(result?.driverNetCents || 0) / 100;
+    if (status) status.textContent = 'Ride accepted securely at $' + net.toFixed(2) + ' net earnings.';
+    await loadDriverLiveFeed();
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not accept ride.';
+  } finally {
+    driverAcceptNetOffer.disabled = false;
+  }
+});
+
+driverDeclineNetOffer?.addEventListener('click', async () => {
+  const status = document.getElementById('dashboardStatus');
+  const rideId = driverLiveRideId?.value || '';
+  if (!rideId || !window.R100Auth?.callRides) {
+    if (status) status.textContent = 'No live ride request is selected.';
+    return;
+  }
+  driverDeclineNetOffer.disabled = true;
+  try {
+    await window.R100Auth.callRides('driverDecline', { rideId });
+    if (status) status.textContent = 'Ride declined securely.';
+    await loadDriverLiveFeed();
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not decline ride.';
+  } finally {
+    driverDeclineNetOffer.disabled = false;
+  }
+});
+
+driverSendCounter?.addEventListener('click', async () => {
+  const status = document.getElementById('dashboardStatus');
+  const rideId = driverLiveRideId?.value || '';
+  const value = Number(driverCounterNet?.value || 0);
+
+  if (!rideId || !window.R100Auth?.callRides) {
+    if (status) status.textContent = 'No live ride request is selected.';
+    return;
+  }
+  if (!Number.isFinite(value) || value <= 0) {
+    if (status) status.textContent = 'Enter the net amount you want to earn.';
+    return;
+  }
+
+  driverSendCounter.disabled = true;
+  try {
+    const formatted = '$' + value.toFixed(2);
+    await window.R100Auth.callRides('driverCounter', {
+      rideId,
+      driverNetCents: Math.round(value * 100),
+    });
+    if (driverNetOffer) driverNetOffer.textContent = formatted;
+    if (driverCounterPanel) driverCounterPanel.hidden = true;
+    if (status) status.textContent = 'Counter sent securely for ' + formatted + ' net earnings. Rider total was calculated on the server.';
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not send counter offer.';
+  } finally {
+    driverSendCounter.disabled = false;
+  }
+});
+
+window.addEventListener('r100-auth-ready', loadDriverLiveFeed);
+if (window.R100Auth) loadDriverLiveFeed();
+
+
+const R100_ADDRESS_SEARCH_URL = 'https://utpprhmhbnioisavfdst.supabase.co/functions/v1/r100-address-search';
+
+function makeSearchSessionToken() {
+  if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+function attachR100AddressAutocomplete(input) {
+  if (!input || input.dataset.r100Autocomplete === 'ready') return;
+  input.dataset.r100Autocomplete = 'ready';
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('autocomplete', 'off');
+
+  const host = document.createElement('div');
+  host.className = 'r100-address-search';
+  input.parentNode?.insertBefore(host, input);
+  host.appendChild(input);
+
+  const list = document.createElement('div');
+  list.className = 'r100-suggestions';
+  list.setAttribute('role', 'listbox');
+  list.hidden = true;
+  host.appendChild(list);
+
+  let sessionToken = makeSearchSessionToken();
+  let timer = null;
+  let controller = null;
+
+  function closeList() {
+    list.hidden = true;
+    list.innerHTML = '';
+    input.setAttribute('aria-expanded', 'false');
+  }
+
+  async function retrieveSuggestion(suggestion) {
+    try {
+      const response = await fetch(R100_ADDRESS_SEARCH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'retrieve', id: suggestion.id, sessionToken }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.result) throw new Error(data?.error || 'Could not retrieve address.');
+
+      const result = data.result;
+      input.value = result.fullAddress || result.name || suggestion.fullAddress || suggestion.name;
+      input.dataset.mapboxId = result.mapboxId || suggestion.id || '';
+      input.dataset.latitude = Number.isFinite(result.latitude) ? String(result.latitude) : '';
+      input.dataset.longitude = Number.isFinite(result.longitude) ? String(result.longitude) : '';
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      closeList();
+      sessionToken = makeSearchSessionToken();
+    } catch {
+      closeList();
+    }
+  }
+
+  async function runSuggest() {
+    const q = input.value.trim();
+    if (q.length < 2) {
+      closeList();
+      return;
+    }
+
+    controller?.abort();
+    controller = new AbortController();
+
+    try {
+      const response = await fetch(R100_ADDRESS_SEARCH_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'suggest', q, sessionToken }),
+        signal: controller.signal,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !Array.isArray(data?.suggestions)) {
+        closeList();
+        return;
+      }
+
+      list.innerHTML = '';
+      data.suggestions.forEach((suggestion) => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'r100-suggestion';
+        option.setAttribute('role', 'option');
+
+        const name = document.createElement('strong');
+        name.textContent = suggestion.name || '';
+        const address = document.createElement('span');
+        address.textContent = suggestion.fullAddress || suggestion.placeFormatted || '';
+
+        option.append(name, address);
+        option.addEventListener('mousedown', (event) => event.preventDefault());
+        option.addEventListener('click', () => retrieveSuggestion(suggestion));
+        list.appendChild(option);
+      });
+
+      list.hidden = data.suggestions.length === 0;
+      input.setAttribute('aria-expanded', String(data.suggestions.length > 0));
+    } catch (error) {
+      if (error?.name !== 'AbortError') closeList();
+    }
+  }
+
+  input.addEventListener('input', () => {
+    delete input.dataset.mapboxId;
+    delete input.dataset.latitude;
+    delete input.dataset.longitude;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(runSuggest, 250);
+  });
+
+  input.addEventListener('focus', () => {
+    if (input.value.trim().length >= 2 && list.childElementCount > 0) {
+      list.hidden = false;
+      input.setAttribute('aria-expanded', 'true');
+    }
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(closeList, 120);
+  });
+
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeList();
+  });
+}
+
+['pickupInput','destinationInput','webPickup','webDestination','webStop1','businessPickup','businessDestination']
+  .map((id) => document.getElementById(id))
+  .filter(Boolean)
+  .forEach(attachR100AddressAutocomplete);
+
+
+const rideForSomeoneElse = document.getElementById('rideForSomeoneElse');
+const guestRiderFields = document.getElementById('guestRiderFields');
+const addRideStop = document.getElementById('addRideStop');
+const rideStopFields = document.getElementById('rideStopFields');
+
+rideForSomeoneElse?.addEventListener('click', () => {
+  const enabled = rideForSomeoneElse.getAttribute('aria-pressed') !== 'true';
+  rideForSomeoneElse.setAttribute('aria-pressed', String(enabled));
+  rideForSomeoneElse.textContent = enabled ? 'On' : 'Off';
+  if (guestRiderFields) guestRiderFields.hidden = !enabled;
+});
+
+addRideStop?.addEventListener('click', () => {
+  const enabled = addRideStop.getAttribute('aria-pressed') !== 'true';
+  addRideStop.setAttribute('aria-pressed', String(enabled));
+  addRideStop.textContent = enabled ? 'Remove stop' : 'Add stop';
+  if (rideStopFields) rideStopFields.hidden = !enabled;
+  if (!enabled) {
+    const stop = document.getElementById('webStop1');
+    if (stop) stop.value = '';
+  }
+});
+
+
+const businessRideMode = document.getElementById('businessRideMode');
+const businessTripFormat = document.getElementById('businessTripFormat');
+const businessGuestFields = document.getElementById('businessGuestFields');
+const businessRecurringFields = document.getElementById('businessRecurringFields');
+const businessRoundTripFields = document.getElementById('businessRoundTripFields');
+
+function renderBusinessOptionPanels() {
+  if (businessGuestFields) businessGuestFields.hidden = businessRideMode?.value !== 'guest';
+  if (businessRecurringFields) businessRecurringFields.hidden = businessRideMode?.value !== 'recurring';
+  if (businessRoundTripFields) businessRoundTripFields.hidden = businessTripFormat?.value !== 'roundtrip';
+}
+businessRideMode?.addEventListener('change', renderBusinessOptionPanels);
+businessTripFormat?.addEventListener('change', renderBusinessOptionPanels);
+renderBusinessOptionPanels();
+
+
+document.querySelectorAll('[data-safety-action]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const action = button.dataset.safetyAction || '';
+    const status = document.getElementById('dashboardStatus');
+    const messages = {
+      pin: 'Ride PIN preview: production rides will show a secure verification PIN before trip start.',
+      share: 'Share Trip preview: live trip sharing will activate only during an authenticated ride.',
+      contacts: 'Emergency Contacts preview: saved contacts will require verified account settings.',
+      report: 'Report Issue preview: safety reporting will connect to the protected support workflow.',
+      '911': '911 access is not activated in this development preview. In production, emergency access will use the device emergency flow.',
+    };
+    if (status) status.textContent = messages[action] || 'Safety tool is not active in this development preview.';
+  });
+});
+
+
+async function loadRiderLivePanel() {
+  const title = document.getElementById('riderLiveRideTitle');
+  const route = document.getElementById('riderLiveRideRoute');
+  const offersBox = document.getElementById('riderCounterOffers');
+  if (!title || !route || !offersBox || !window.R100Auth?.callRides) return;
+
+  const dashboardStatus = document.getElementById('dashboardStatus');
+  try {
+    const result = await window.R100Auth.callRides('riderFeed');
+    const rides = Array.isArray(result?.rides) ? result.rides : [];
+    const ride = rides.find((item) => ['open','negotiating','accepted'].includes(item.status)) || rides[0] || null;
+
+    if (!ride) {
+      title.textContent = 'No active ride';
+      route.textContent = 'Request a ride when you are ready.';
+      offersBox.innerHTML = '<div class="empty-dashboard-state">No driver responses yet.</div>';
+      return;
+    }
+
+    title.textContent = ride.status === 'accepted'
+      ? 'Driver accepted'
+      : ride.status === 'negotiating'
+        ? 'Negotiation in progress'
+        : 'Looking for a driver';
+    route.textContent = (ride.pickup_label || 'Pickup') + ' → ' + (ride.destination_label || 'Destination');
+
+    if (ride.status === 'accepted') {
+      offersBox.innerHTML = '<div class="empty-dashboard-state">Your ride is accepted. Trip details will continue here.</div>';
+      return;
+    }
+
+    const offerResult = await window.R100Auth.callRides('riderOffers', { rideId: ride.id });
+    const offers = Array.isArray(offerResult?.offers) ? offerResult.offers : [];
+    offersBox.innerHTML = '';
+
+    if (!offers.length) {
+      offersBox.innerHTML = '<div class="empty-dashboard-state">No driver responses yet.</div>';
+      return;
+    }
+
+    offers.forEach((offer) => {
+      const row = document.createElement('div');
+      row.className = 'rider-offer-row';
+
+      const amount = document.createElement('strong');
+      amount.textContent = '$' + (Number(offer.rider_total_cents || 0) / 100).toFixed(2);
+
+      const label = document.createElement('span');
+      label.textContent = 'Driver counter offer';
+
+      const accept = document.createElement('button');
+      accept.type = 'button';
+      accept.className = 'button primary';
+      accept.textContent = 'Accept';
+      accept.addEventListener('click', async () => {
+        accept.disabled = true;
+        try {
+          const accepted = await window.R100Auth.callRides('riderAcceptCounter', {
+            rideId: ride.id,
+            offerId: offer.id,
+          });
+          if (dashboardStatus) dashboardStatus.textContent = 'Counter accepted at $' + (Number(accepted?.riderTotalCents || 0) / 100).toFixed(2) + '.';
+          await loadRiderLivePanel();
+        } catch (error) {
+          if (dashboardStatus) dashboardStatus.textContent = error instanceof Error ? error.message : 'Could not accept counter.';
+          accept.disabled = false;
+        }
+      });
+
+      const text = document.createElement('div');
+      text.append(amount, label);
+      row.append(text, accept);
+      offersBox.appendChild(row);
+    });
+  } catch (error) {
+    if (dashboardStatus) dashboardStatus.textContent = error instanceof Error ? error.message : 'Could not load rider status.';
+  }
+}
+
+window.addEventListener('r100-auth-ready', loadRiderLivePanel);
+if (window.R100Auth) loadRiderLivePanel();
+
+
+const R100_ROUTE_MAP_URL = 'https://utpprhmhbnioisavfdst.supabase.co/functions/v1/r100-route-map';
+
+function routePointFromInput(id) {
+  const input = document.getElementById(id);
+  if (!input?.value.trim()) return null;
+  const lat = Number(input.dataset.latitude);
+  const lng = Number(input.dataset.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { label: input.value.trim(), lat, lng };
+}
+
+function formatRouteMiles(meters) {
+  const miles = Number(meters || 0) / 1609.344;
+  return miles >= 10 ? miles.toFixed(1) : miles.toFixed(2);
+}
+
+function formatRouteMinutes(seconds) {
+  return Math.max(1, Math.round(Number(seconds || 0) / 60));
+}
+
+let r100RoutePreviewTimer = null;
+let r100RoutePreviewController = null;
+
+async function refreshR100RoutePreview() {
+  const image = document.getElementById('rideMapImage');
+  const empty = document.getElementById('rideMapEmpty');
+  const status = document.getElementById('rideMapStatus');
+  const title = document.getElementById('rideMapTitle');
+  const distance = document.getElementById('rideMapDistance');
+  const eta = document.getElementById('rideMapEta');
+  if (!image || !empty || !title || !distance || !eta) return;
+
+  const pickup = routePointFromInput('webPickup');
+  const destination = routePointFromInput('webDestination');
+  const stop = routePointFromInput('webStop1');
+
+  if (!pickup || !destination) {
+    image.hidden = true;
+    image.removeAttribute('src');
+    empty.hidden = false;
+    title.textContent = 'Choose pickup and destination';
+    distance.textContent = '—';
+    eta.textContent = '—';
+    if (status) status.textContent = '';
+    return;
+  }
+
+  r100RoutePreviewController?.abort();
+  r100RoutePreviewController = new AbortController();
+
+  if (status) status.textContent = 'Calculating secure route…';
+  title.textContent = stop ? 'Route with stop' : 'Direct route';
+
+  try {
+    const response = await fetch(R100_ROUTE_MAP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pickup, destination, stop }),
+      signal: r100RoutePreviewController.signal,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data?.error || 'Could not calculate route.');
+
+    distance.textContent = formatRouteMiles(data.distanceMeters);
+    eta.textContent = String(formatRouteMinutes(data.durationSeconds));
+
+    if (data.mapDataUrl) {
+      image.src = data.mapDataUrl;
+      image.hidden = false;
+      empty.hidden = true;
+    } else {
+      image.hidden = true;
+      empty.hidden = false;
+      empty.textContent = 'Route calculated, but map image is temporarily unavailable.';
+    }
+
+    if (status) status.textContent = 'Route calculated from Mapbox routing data.';
+  } catch (error) {
+    if (error?.name === 'AbortError') return;
+    image.hidden = true;
+    empty.hidden = false;
+    empty.textContent = 'Route preview is temporarily unavailable.';
+    distance.textContent = '—';
+    eta.textContent = '—';
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not calculate route.';
+  }
+}
+
+function queueR100RoutePreview() {
+  if (r100RoutePreviewTimer) clearTimeout(r100RoutePreviewTimer);
+  r100RoutePreviewTimer = setTimeout(refreshR100RoutePreview, 120);
+}
+
+['webPickup','webDestination','webStop1'].forEach((id) => {
+  document.getElementById(id)?.addEventListener('change', queueR100RoutePreview);
+});
+
+
+const driverPickupEtaButton = document.getElementById('driverPickupEtaButton');
+
+function currentDriverRidePickup() {
+  const id = document.getElementById('driverLiveRideId');
+  if (!id?.value) return null;
+  const lat = Number(id.dataset.pickupLat);
+  const lng = Number(id.dataset.pickupLng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return { lat, lng };
+}
+
+driverPickupEtaButton?.addEventListener('click', () => {
+  const metric = document.getElementById('driverPickupMetric');
+  const status = document.getElementById('dashboardStatus');
+  const pickup = currentDriverRidePickup();
+
+  if (!pickup) {
+    if (status) status.textContent = 'Load a live ride request before calculating pickup ETA.';
+    return;
+  }
+  if (!navigator.geolocation) {
+    if (status) status.textContent = 'Location services are not available in this browser.';
+    return;
+  }
+
+  driverPickupEtaButton.disabled = true;
+  if (metric) metric.textContent = 'Getting your location…';
+
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    try {
+      const response = await fetch(R100_ROUTE_MAP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          metricsOnly: true,
+          pickup: {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          },
+          destination: pickup,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error || 'Could not calculate pickup ETA.');
+
+      const miles = Number(data.distanceMeters || 0) / 1609.344;
+      const minutes = Math.max(1, Math.round(Number(data.durationSeconds || 0) / 60));
+      if (metric) metric.textContent = minutes + ' min · ' + miles.toFixed(1) + ' mi to pickup';
+      if (status) status.textContent = 'Pickup ETA calculated from your current location. Your location was used only for this request.';
+    } catch (error) {
+      if (metric) metric.textContent = 'Pickup ETA unavailable';
+      if (status) status.textContent = error instanceof Error ? error.message : 'Could not calculate pickup ETA.';
+    } finally {
+      driverPickupEtaButton.disabled = false;
+    }
+  }, () => {
+    if (metric) metric.textContent = 'Location permission required';
+    if (status) status.textContent = 'Allow location access to calculate pickup ETA.';
+    driverPickupEtaButton.disabled = false;
+  }, {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 15000,
+  });
+});
+
+
+async function loadDriverLifecycle() {
+  const title = document.getElementById('driverLifecycleTitle');
+  const route = document.getElementById('driverLifecycleRoute');
+  if (!title || !route || !window.R100Auth?.callRides) return;
+
+  const statusNode = document.getElementById('dashboardStatus');
+  const enRoute = document.getElementById('driverGoEnRoute');
+  const arrived = document.getElementById('driverMarkArrived');
+  const verifyPin = document.getElementById('driverVerifyRidePin');
+  const complete = document.getElementById('driverCompleteRide');
+  const pinInput = document.getElementById('driverRidePinInput');
+
+  try {
+    const result = await window.R100Auth.callRides('driverActiveRide');
+    const ride = result?.ride || null;
+
+    [enRoute, arrived, verifyPin, complete].forEach((button) => { if (button) button.disabled = true; });
+
+    if (!ride) {
+      title.textContent = 'No active accepted ride';
+      route.textContent = 'Accept a ride to unlock trip controls.';
+      if (pinInput) pinInput.value = '';
+      return;
+    }
+
+    title.textContent = String(ride.status || 'active').replace('_', ' ').toUpperCase();
+    route.textContent = (ride.pickup_label || 'Pickup') + ' → ' + (ride.destination_label || 'Destination');
+    if (enRoute) enRoute.disabled = ride.status !== 'accepted';
+    if (arrived) arrived.disabled = ride.status !== 'en_route';
+    if (verifyPin) verifyPin.disabled = ride.status !== 'arrived';
+    if (complete) complete.disabled = ride.status !== 'in_progress';
+
+    const hidden = document.getElementById('driverLiveRideId');
+    if (hidden) hidden.value = ride.id || '';
+  } catch (error) {
+    if (statusNode) statusNode.textContent = error instanceof Error ? error.message : 'Could not load active ride.';
+  }
+}
+
+async function setDriverLifecycleStatus(nextStatus) {
+  const rideId = document.getElementById('driverLiveRideId')?.value || '';
+  const statusNode = document.getElementById('dashboardStatus');
+  if (!rideId || !window.R100Auth?.callRides) {
+    if (statusNode) statusNode.textContent = 'No active ride selected.';
+    return;
+  }
+  try {
+    await window.R100Auth.callRides('driverSetRideStatus', { rideId, status: nextStatus });
+    if (statusNode) statusNode.textContent = 'Ride status updated securely.';
+    await loadDriverLifecycle();
+    await loadDriverLiveFeed();
+    await refreshDriverTrackingState();
+  } catch (error) {
+    if (statusNode) statusNode.textContent = error instanceof Error ? error.message : 'Could not update ride status.';
+  }
+}
+
+document.getElementById('driverGoEnRoute')?.addEventListener('click', () => setDriverLifecycleStatus('en_route'));
+document.getElementById('driverMarkArrived')?.addEventListener('click', () => setDriverLifecycleStatus('arrived'));
+document.getElementById('driverCompleteRide')?.addEventListener('click', () => setDriverLifecycleStatus('completed'));
+
+document.getElementById('driverVerifyRidePin')?.addEventListener('click', async () => {
+  const rideId = document.getElementById('driverLiveRideId')?.value || '';
+  const pin = document.getElementById('driverRidePinInput')?.value.trim() || '';
+  const statusNode = document.getElementById('dashboardStatus');
+  if (!/^[0-9]{4}$/.test(pin)) {
+    if (statusNode) statusNode.textContent = 'Enter the 4-digit ride PIN.';
+    return;
+  }
+  try {
+    await window.R100Auth.callRides('driverVerifyPin', { rideId, pin });
+    const pinInput = document.getElementById('driverRidePinInput');
+    if (pinInput) pinInput.value = '';
+    if (statusNode) statusNode.textContent = 'Ride PIN verified. Ride started.';
+    await loadDriverLifecycle();
+  } catch (error) {
+    if (statusNode) statusNode.textContent = error instanceof Error ? error.message : 'Could not verify ride PIN.';
+  }
+});
+
+let r100DriverLocationWatchId = null;
+
+function startDriverLocationWatch() {
+  if (!navigator.geolocation || r100DriverLocationWatchId !== null) return;
+  const statusNode = document.getElementById('dashboardStatus');
+
+  r100DriverLocationWatchId = navigator.geolocation.watchPosition(async (position) => {
+    const rideId = document.getElementById('driverLiveRideId')?.value || '';
+    if (!rideId || !window.R100Auth?.callRides) return;
+
+    try {
+      await window.R100Auth.callRides('driverUpdateLocation', {
+        rideId,
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        accuracy: position.coords.accuracy,
+      });
+    } catch (error) {
+      if (statusNode) statusNode.textContent = error instanceof Error ? error.message : 'Could not update live location.';
+    }
+  }, () => {
+    if (statusNode) statusNode.textContent = 'Location permission is required for live trip tracking.';
+  }, {
+    enableHighAccuracy: true,
+    maximumAge: 10000,
+    timeout: 15000,
+  });
+}
+
+function stopDriverLocationWatch() {
+  if (r100DriverLocationWatchId !== null && navigator.geolocation) {
+    navigator.geolocation.clearWatch(r100DriverLocationWatchId);
+    r100DriverLocationWatchId = null;
+  }
+}
+
+async function refreshDriverTrackingState() {
+  if (!window.R100Auth?.callRides) return;
+  try {
+    const result = await window.R100Auth.callRides('driverActiveRide');
+    const status = result?.ride?.status || null;
+    if (['accepted','en_route','arrived','in_progress'].includes(status)) startDriverLocationWatch();
+    else stopDriverLocationWatch();
+  } catch {}
+}
+
+window.addEventListener('r100-auth-ready', () => {
+  loadDriverLifecycle();
+  refreshDriverTrackingState();
+});
+if (window.R100Auth) {
+  loadDriverLifecycle();
+  refreshDriverTrackingState();
+}
+
+async function refreshRiderTripStatus() {
+  const lifecycle = document.getElementById('riderRideLifecycle');
+  const statusLabel = document.getElementById('riderRideLifecycleStatus');
+  const pinLabel = document.getElementById('riderRidePin');
+  const locationLabel = document.getElementById('riderDriverLocationStatus');
+  if (!lifecycle || !window.R100Auth?.callRides) return;
+
+  const lastRideId = sessionStorage.getItem('r100LastRideId') || '';
+  let rideId = lastRideId;
+  if (!rideId) {
+    try {
+      const feed = await window.R100Auth.callRides('riderFeed');
+      const active = Array.isArray(feed?.rides) ? feed.rides.find((r) => ['accepted','en_route','arrived','in_progress'].includes(r.status)) : null;
+      rideId = active?.id || '';
+    } catch {}
+  }
+
+  if (!rideId) {
+    lifecycle.hidden = true;
+    return;
+  }
+
+  try {
+    const result = await window.R100Auth.callRides('riderTripStatus', { rideId });
+    const ride = result?.ride || null;
+    if (!ride) {
+      lifecycle.hidden = true;
+      return;
+    }
+
+    lifecycle.hidden = false;
+    if (statusLabel) statusLabel.textContent = String(ride.status || '—').replace('_', ' ').toUpperCase();
+    if (pinLabel) pinLabel.textContent = ride.ridePin || (ride.status === 'in_progress' ? 'Verified' : '—');
+    if (locationLabel) {
+      locationLabel.textContent = ride.driverLocation
+        ? 'Live location received'
+        : ['accepted','en_route','arrived','in_progress'].includes(ride.status)
+          ? 'Waiting for driver location'
+          : 'Not active';
+    }
+  } catch {}
+}
+
+window.addEventListener('r100-auth-ready', refreshRiderTripStatus);
+if (window.R100Auth) refreshRiderTripStatus();
+ + net.toFixed(2) + ' net earnings.';
+    await loadDriverLiveFeed();
+    await loadDriverLifecycle();
+    await refreshDriverTrackingState();
   } catch (error) {
     if (status) status.textContent = error instanceof Error ? error.message : 'Could not accept ride.';
   } finally {
@@ -2600,3 +4216,33 @@ async function refreshRiderTripStatus() {
 
 window.addEventListener('r100-auth-ready', refreshRiderTripStatus);
 if (window.R100Auth) refreshRiderTripStatus();
+
+
+let r100RiderTrackingTimer = null;
+
+function startRiderTripPolling() {
+  if (!document.getElementById('riderRideLifecycle') || r100RiderTrackingTimer !== null) return;
+  refreshRiderTripStatus();
+  r100RiderTrackingTimer = window.setInterval(() => {
+    if (document.visibilityState === 'visible') refreshRiderTripStatus();
+  }, 10000);
+}
+
+function stopRiderTripPolling() {
+  if (r100RiderTrackingTimer !== null) {
+    clearInterval(r100RiderTrackingTimer);
+    r100RiderTrackingTimer = null;
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.getElementById('riderRideLifecycle')) return;
+  if (document.visibilityState === 'visible') {
+    refreshRiderTripStatus();
+    startRiderTripPolling();
+  }
+});
+
+window.addEventListener('beforeunload', stopRiderTripPolling);
+window.addEventListener('r100-auth-ready', startRiderTripPolling);
+if (window.R100Auth) startRiderTripPolling();
