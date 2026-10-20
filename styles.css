@@ -348,3 +348,23 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .audit-body strong{display:block;font-size:12px;color:#102033}
 .audit-body span{display:block;margin-top:3px;font-size:11px;line-height:1.5;color:#69707d}
 @media(max-width:620px){.audit-entry{grid-template-columns:1fr;gap:4px}}
+
+.driver-offer-card{grid-column:1/-1;border:2px solid #8ECDF4;background:#f8fcff}
+.driver-net-earnings{margin:12px 0 18px;padding:20px;border-radius:18px;background:#0b1f33;color:#fff}
+.driver-net-earnings span{display:block;font-size:11px;font-weight:950;letter-spacing:1px;color:#8ECDF4}
+.driver-net-earnings strong{display:block;font-size:46px;line-height:1;margin:7px 0 5px}
+.driver-net-earnings small{color:#cbd5e1}
+.driver-offer-route{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.driver-offer-route div{border:1px solid #e1e7ed;border-radius:12px;padding:12px;background:#fff}
+.driver-offer-route span{display:block;font-size:9px;font-weight:900;color:#7b8794;text-transform:uppercase}
+.driver-offer-route strong{display:block;margin-top:4px;color:#102033;font-size:12px}
+.driver-offer-actions{display:flex;gap:10px;flex-wrap:wrap}
+.driver-offer-actions button{cursor:pointer}
+.driver-counter-panel{margin-top:14px;padding:14px;border:1px solid #dce6ef;border-radius:14px;background:#fff}
+.driver-counter-panel[hidden]{display:none}
+.driver-counter-panel label>span{display:block;font-size:12px;font-weight:900;color:#26364a;margin-bottom:7px}
+.driver-counter-input{display:flex;align-items:center;border:1px solid #ccd7e2;border-radius:12px;padding:0 12px;margin-bottom:10px}
+.driver-counter-input span{font-weight:900;color:#526071}
+.driver-counter-input input{width:100%;border:0;outline:0;padding:12px;font:inherit}
+.driver-counter-panel p,.driver-net-rule{font-size:11px!important;color:#69707d!important;line-height:1.55!important;margin-top:10px!important}
+@media(max-width:650px){.driver-offer-route{grid-template-columns:1fr}.driver-offer-actions{display:grid}}
