@@ -131,3 +131,8 @@ if (signupForm) {
     window.location.href = `mailto:contact@riscasan.com?subject=${subject}&body=${body}`;
   });
 }
+
+if (signupType) {
+  const requestedType = new URLSearchParams(window.location.search).get('type');
+  if (requestedType === 'driver' || requestedType === 'rider') setSignupType(requestedType);
+}
