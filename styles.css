@@ -406,3 +406,10 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .rider-safety-shield small{color:#69707d;line-height:1.45}
 @media(max-width:850px){.driver-request-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.safety-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.business-option-grid{grid-template-columns:1fr}.ride-extra-row{align-items:flex-start}.safety-tool-grid{grid-template-columns:1fr}}
+
+.rider-counter-offers{display:grid;gap:10px;margin-top:12px}
+.rider-offer-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #dfe7ef;border-radius:14px;padding:12px;background:#f9fbfd}
+.rider-offer-row strong{display:block;font-size:20px;color:#102033}
+.rider-offer-row span{display:block;margin-top:3px;font-size:10px;color:#69707d}
+.dashboard-signout{margin-left:12px}
+@media(max-width:650px){.rider-offer-row{align-items:flex-start;flex-direction:column}.dashboard-signout{margin-left:0}}
