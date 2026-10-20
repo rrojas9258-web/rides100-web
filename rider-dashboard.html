@@ -8,5 +8,18 @@
 <section class="dashboard-card"><span class="dash-label">RECENT TRIPS</span><div class="empty-dashboard-state">No completed trips yet.</div></section>
 <section class="dashboard-card"><span class="dash-label">RATINGS</span><h3>5.0 ★</h3><p>Your rider rating from completed trips will appear here.</p></section>
 <section class="dashboard-card"><span class="dash-label">PAYMENTS</span><h3>Payment methods</h3><p>Apple Pay and debit/credit card will be available through the secure payment backend. PayPal remains planned.</p><button class="button secondary dark-outline dashboard-demo-action" type="button" data-dashboard-action="payment">Manage payment methods</button></section>
+<section class="dashboard-card safety-center-card" id="riderSafetyCenter">
+      <span class="dash-label">SAFETY SHIELD</span>
+      <h3>Ride safety tools</h3>
+      <p>Keep verification and emergency tools one tap away during an active ride.</p>
+      <div class="safety-tool-grid">
+        <button type="button" class="safety-tool" data-safety-action="pin"><strong>Ride PIN</strong><span>Verify the correct ride</span></button>
+        <button type="button" class="safety-tool" data-safety-action="share"><strong>Share Trip</strong><span>Send live trip details</span></button>
+        <button type="button" class="safety-tool" data-safety-action="contacts"><strong>Emergency Contacts</strong><span>Reach saved contacts</span></button>
+        <button type="button" class="safety-tool" data-safety-action="report"><strong>Report Issue</strong><span>Contact Rides100 safety</span></button>
+        <button type="button" class="safety-tool emergency" data-safety-action="911"><strong>911</strong><span>Emergency access</span></button>
+      </div>
+      <small class="safety-preview-note">Development preview only. Emergency and live-sharing actions are not activated here.</small>
+    </section>
 <section class="dashboard-card"><span class="dash-label">PROFILE & SAFETY</span><h3>Rider account</h3><p>Verified phone, emergency settings, trip support and account preferences will live here.</p><button class="button secondary dark-outline dashboard-demo-action" type="button" data-dashboard-action="profile">Open profile settings</button></section>
 </div><div id="dashboardStatus" class="form-status" role="status"></div></main><script src="app.js"></script></body></html>
