@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Rides100 Wallets — Development Preview</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="index.html" aria-label="Rides100 home"><img class="brand-logo" src="assets/rides100-logo.png" alt="Rides100"></a>
+  <nav class="desktop-nav" aria-label="Primary navigation">
+    <a href="riders.html">Riders</a><a href="drivers.html">Drivers</a><a href="request-ride.html">Request a Ride</a><a href="r-business.html">R-Business</a><a href="wallets.html" aria-current="page">Wallets</a>
+  </nav>
+  <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">☰</button>
+  <div class="mobile-menu" id="mobileMenu" hidden>
+    <a href="riders.html">Riders</a><a href="drivers.html">Drivers</a><a href="request-ride.html">Request a Ride</a><a href="r-business.html">R-Business</a><a href="wallets.html" aria-current="page">Wallets</a>
+  </div>
+</header>
+
+<main>
+<section class="section page-hero wallet-page">
+  <div class="section-head">
+    <div class="eyebrow dark">PRIVATE DEVELOPMENT PREVIEW</div>
+    <h2>Rides100 Wallets</h2>
+    <p class="page-lead">A two-sided wallet experience for riders and drivers. Money movement remains disabled in this development preview.</p>
+  </div>
+
+  <div class="wallet-preview-grid">
+    <article class="wallet-preview-card rider-wallet-card">
+      <div class="wallet-preview-top">
+        <div>
+          <div class="wallet-kicker">RIDER WALLET</div>
+          <h3>$0.00</h3>
+          <p>Available balance</p>
+        </div>
+        <span class="wallet-badge">RIDER</span>
+      </div>
+      <div class="wallet-metrics">
+        <div><strong>$0.00</strong><span>Pending</span></div>
+        <div><strong>$0.00</strong><span>Credits</span></div>
+        <div><strong>0</strong><span>Transactions</span></div>
+      </div>
+      <div class="wallet-actions">
+        <button class="button primary wallet-demo-action" type="button" data-wallet-action="add">Add Funds</button>
+        <button class="button secondary dark-outline wallet-demo-action" type="button" data-wallet-action="history">Activity</button>
+      </div>
+      <div class="wallet-methods">
+        <span>Apple Pay</span><span>Debit / Credit Card</span><span>PayPal planned</span>
+      </div>
+      <div class="wallet-note">Top-ups will be credited only after the trusted payment backend confirms a successful payment.</div>
+    </article>
+
+    <article class="wallet-preview-card driver-wallet-card">
+      <div class="wallet-preview-top">
+        <div>
+          <div class="wallet-kicker">DRIVER WALLET</div>
+          <h3>$0.00</h3>
+          <p>Available balance</p>
+        </div>
+        <span class="wallet-badge">DRIVER</span>
+      </div>
+      <div class="wallet-metrics">
+        <div><strong>$0.00</strong><span>Pending</span></div>
+        <div><strong>$0.00</strong><span>This week</span></div>
+        <div><strong>0</strong><span>Paid rides</span></div>
+      </div>
+      <div class="wallet-actions">
+        <button class="button primary wallet-demo-action" type="button" data-wallet-action="cashout">Cash Out</button>
+        <button class="button secondary dark-outline wallet-demo-action" type="button" data-wallet-action="history">Activity</button>
+      </div>
+      <div class="wallet-note">Driver payouts stay locked until Stripe Connect and the official Rides100 payout policy are approved.</div>
+    </article>
+  </div>
+
+  <div class="wallet-security-card">
+    <div class="eyebrow dark">SECURITY MODEL</div>
+    <h3>Balances are never controlled by the browser.</h3>
+    <p>Wallet credits, refunds, earnings and payouts must come from trusted server-side payment and ledger events. This preview does not move money or write balances.</p>
+  </div>
+
+  <div id="walletPreviewStatus" class="form-status" role="status" aria-live="polite"></div>
+</section>
+</main>
+
+<footer><div><strong>Rides100</strong> is operated by <strong>RISCASAN LLC</strong>.</div><div class="copyright">Private development preview · not for public release.</div></footer>
+<script src="app.js"></script>
+</body></html>
