@@ -240,3 +240,73 @@ scheduleOptions.forEach((option) => {
     });
   });
 });
+
+
+const businessRequestForm = document.getElementById('businessRequestForm');
+if (businessRequestForm) {
+  const businessDate = document.getElementById('businessDate');
+  if (businessDate) {
+    const now = new Date();
+    businessDate.min = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  }
+
+  businessRequestForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const status = document.getElementById('businessStatus');
+    const org = document.getElementById('businessOrg')?.value.trim() || '';
+    const contact = document.getElementById('businessContact')?.value.trim() || '';
+    const email = document.getElementById('businessEmail')?.value.trim() || '';
+    const phone = document.getElementById('businessPhone')?.value.trim() || '';
+    const eventName = document.getElementById('businessEvent')?.value.trim() || '';
+    const passengers = Number(document.getElementById('businessPassengers')?.value || 0);
+    const date = document.getElementById('businessDate')?.value || '';
+    const time = document.getElementById('businessTime')?.value || '';
+    const pickup = document.getElementById('businessPickup')?.value.trim() || '';
+    const destination = document.getElementById('businessDestination')?.value.trim() || '';
+    const notes = document.getElementById('businessNotes')?.value.trim() || '';
+    const fleet = {
+      standard: Number(document.getElementById('businessStandard')?.value || 0),
+      van: Number(document.getElementById('businessVan')?.value || 0),
+      black: Number(document.getElementById('businessBlack')?.value || 0),
+      blackSuv: Number(document.getElementById('businessSuv')?.value || 0),
+    };
+
+    const fleetValues = Object.values(fleet);
+    const totalVehicles = fleetValues.reduce((sum, value) => sum + value, 0);
+
+    if (!org || !contact || !email || !eventName || !pickup || !destination || !date || !time || passengers < 1) {
+      if (status) status.textContent = 'Complete the required event and contact information.';
+      return;
+    }
+    if (fleetValues.some((value) => !Number.isInteger(value) || value < 0 || value > 50) || totalVehicles < 1) {
+      if (status) status.textContent = 'Request at least one vehicle. Maximum 50 per category.';
+      return;
+    }
+
+    const scheduled = new Date(`${date}T${time}`);
+    if (!Number.isFinite(scheduled.getTime()) || scheduled.getTime() <= Date.now()) {
+      if (status) status.textContent = 'Choose a future event date and pickup time.';
+      return;
+    }
+
+    const pending = {
+      org,
+      contact,
+      email,
+      phone,
+      eventName,
+      passengers,
+      scheduledFor: scheduled.toISOString(),
+      pickup,
+      destination,
+      fleet,
+      totalVehicles,
+      notes,
+      createdAt: new Date().toISOString(),
+    };
+
+    sessionStorage.setItem('r100PendingBusinessRequest', JSON.stringify(pending));
+    if (status) status.textContent = `R-Business request prepared for ${totalVehicles} vehicle${totalVehicles === 1 ? '' : 's'}. Live business booking is not active yet.`;
+  });
+}
