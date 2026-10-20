@@ -48,4 +48,19 @@
       </div>
     </section>
 <section class="dashboard-card"><span class="dash-label">RECENT EARNINGS</span><div class="empty-dashboard-state">No completed paid rides yet.</div></section>
-</div><div id="dashboardStatus" class="form-status" role="status"></div></main><script src="app.js"></script><script type="module" src="r100-auth.js"></script></body></html>
+<section class="dashboard-card" id="driverLifecyclePanel">
+        <span class="dash-label">ACTIVE RIDE CONTROL</span>
+        <h3 id="driverLifecycleTitle">No active accepted ride</h3>
+        <p id="driverLifecycleRoute">Accept a ride to unlock trip controls.</p>
+        <div class="driver-lifecycle-actions">
+          <button class="button primary" id="driverGoEnRoute" type="button" disabled>Go En Route</button>
+          <button class="button secondary dark-outline" id="driverMarkArrived" type="button" disabled>Mark Arrived</button>
+        </div>
+        <div class="driver-pin-panel">
+          <label class="form-field"><span>Ride PIN</span><input id="driverRidePinInput" type="text" inputmode="numeric" maxlength="4" autocomplete="one-time-code" placeholder="4-digit PIN"></label>
+          <button class="button primary" id="driverVerifyRidePin" type="button" disabled>Verify PIN & Start Ride</button>
+        </div>
+        <button class="button primary" id="driverCompleteRide" type="button" disabled>Complete Ride</button>
+        <small>Ride state changes are verified on the protected backend.</small>
+      </section>
+      </div><div id="dashboardStatus" class="form-status" role="status"></div></main><script src="app.js"></script><script type="module" src="r100-auth.js"></script></body></html>
