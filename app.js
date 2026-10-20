@@ -157,3 +157,24 @@ if (signupType) {
   const requestedType = new URLSearchParams(window.location.search).get('type');
   if (requestedType === 'driver' || requestedType === 'rider') setSignupType(requestedType);
 }
+
+
+const webRideRequestForm = document.getElementById('webRideRequestForm');
+if (webRideRequestForm) {
+  webRideRequestForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const pickup = document.getElementById('webPickup')?.value.trim() || '';
+    const destination = document.getElementById('webDestination')?.value.trim() || '';
+    const rideType = document.getElementById('webRideType')?.value || 'standard';
+    const status = document.getElementById('webRideStatus');
+
+    if (!pickup || !destination) {
+      if (status) status.textContent = 'Enter both pickup and destination.';
+      return;
+    }
+
+    sessionStorage.setItem('r100PendingRide', JSON.stringify({ pickup, destination, rideType }));
+    if (status) status.textContent = 'Rider Sign In is required before a live request can be sent.';
+    window.location.href = 'rider-signin.html?next=request-ride';
+  });
+}
