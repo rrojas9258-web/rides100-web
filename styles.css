@@ -424,3 +424,11 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .ride-map-frame img{display:block;width:100%;height:auto;min-height:220px;object-fit:cover}
 .ride-map-empty{padding:34px;text-align:center;color:#69707d;font-size:12px;line-height:1.5}
 @media(max-width:650px){.ride-map-head{flex-direction:column}.ride-map-stats{width:100%}.ride-map-stats span{flex:1}}
+
+.driver-lifecycle-actions{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.driver-pin-panel{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;margin:14px 0}
+.rider-ride-lifecycle{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.rider-ride-lifecycle>div{border:1px solid #dfe7ef;border-radius:12px;padding:10px;background:#f9fbfd}
+.rider-ride-lifecycle span{display:block;font-size:10px;color:#69707d;text-transform:uppercase;font-weight:800}
+.rider-ride-lifecycle strong{display:block;margin-top:4px;color:#102033}
+@media(max-width:650px){.driver-pin-panel,.rider-ride-lifecycle{grid-template-columns:1fr}}
