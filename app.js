@@ -178,3 +178,21 @@ if (webRideRequestForm) {
     window.location.href = 'rider-signin.html?next=request-ride';
   });
 }
+
+
+const rideCategoryCards = document.querySelectorAll('.ride-category-card');
+const webRideTypeInput = document.getElementById('webRideType');
+
+rideCategoryCards.forEach((card) => {
+  card.addEventListener('click', () => {
+    const type = card.dataset.rideType;
+    if (!type || !webRideTypeInput) return;
+
+    webRideTypeInput.value = type;
+    rideCategoryCards.forEach((item) => {
+      const active = item === card;
+      item.classList.toggle('active', active);
+      item.setAttribute('aria-pressed', String(active));
+    });
+  });
+});
