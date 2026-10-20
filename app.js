@@ -567,6 +567,7 @@ function renderAssignmentPreview() {
           if (statusMessage) {
             statusMessage.textContent = 'Declined slot reopened for ' + (labelMap[row.vehicleType] || row.vehicleType) + '. Enter another qualified driver.';
           }
+          appendBusinessAudit('Slot reopened', row.name + ' declined; ' + (labelMap[row.vehicleType] || row.vehicleType) + ' slot reopened for reassignment.');
         });
         actionWrap.appendChild(reassign);
       }
