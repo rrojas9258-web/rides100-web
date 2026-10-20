@@ -324,3 +324,17 @@ document.querySelectorAll('.wallet-demo-action').forEach((button) => {
     if (status) status.textContent = messages[action] || 'Wallet action is not active in this development preview.';
   });
 });
+
+
+document.querySelectorAll('.dashboard-demo-action').forEach((button) => {
+  button.addEventListener('click', () => {
+    const action = button.dataset.dashboardAction || '';
+    const status = document.getElementById('dashboardStatus');
+    const messages = {
+      payment: 'Payment method management will activate with verified Rider Sign In and the secure payment backend.',
+      profile: 'Profile and safety settings will activate with production authentication.',
+      compliance: 'Driver compliance management will require verified Driver Sign In and admin-approved document review.',
+    };
+    if (status) status.textContent = messages[action] || 'This dashboard action is still in private development.';
+  });
+});
