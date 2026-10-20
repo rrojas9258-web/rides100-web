@@ -4,7 +4,12 @@
 <main class="section dashboard-page"><div class="dashboard-head"><div><div class="eyebrow dark">PRIVATE DEVELOPMENT PREVIEW</div><h2>Rider Dashboard</h2><p>One place for rides, wallet, ratings, payments and profile.</p></div><a class="button primary" href="request-ride.html">Request a Ride</a></div>
 <div class="dashboard-grid">
 <section class="dashboard-card dashboard-wallet"><div class="dashboard-card-top"><div><span class="dash-label">RIDER WALLET</span><strong class="dash-balance">$0.00</strong><small>Available balance</small></div><a href="wallets.html">Open Wallet →</a></div><div class="dash-stats"><div><b>$0.00</b><span>Pending</span></div><div><b>$0.00</b><span>Credits</span></div><div><b>0</b><span>Transactions</span></div></div></section>
-<section class="dashboard-card" id="riderLiveRideCard"><div class="dashboard-card-top"><div><span class="dash-label">UPCOMING / ACTIVE</span><h3 id="riderLiveRideTitle">Loading ride status…</h3></div><a href="request-ride.html">Plan ride →</a></div><p id="riderLiveRideRoute">Your current or scheduled ride will appear here.</p><div id="riderCounterOffers" class="rider-counter-offers"><div class="empty-dashboard-state">No driver responses yet.</div></div></section>
+<section class="dashboard-card" id="riderLiveRideCard"><div class="dashboard-card-top"><div><span class="dash-label">UPCOMING / ACTIVE</span><h3 id="riderLiveRideTitle">Loading ride status…</h3></div><a href="request-ride.html">Plan ride →</a></div><p id="riderLiveRideRoute">Your current or scheduled ride will appear here.</p><div id="riderRideLifecycle" class="rider-ride-lifecycle" hidden>
+        <div><span>Status</span><strong id="riderRideLifecycleStatus">—</strong></div>
+        <div><span>Ride PIN</span><strong id="riderRidePin">—</strong></div>
+        <div><span>Driver location</span><strong id="riderDriverLocationStatus">Waiting</strong></div>
+      </div>
+      <div id="riderCounterOffers" class="rider-counter-offers"><div class="empty-dashboard-state">No driver responses yet.</div></div></section>
 <section class="dashboard-card"><span class="dash-label">RECENT TRIPS</span><div class="empty-dashboard-state">No completed trips yet.</div></section>
 <section class="dashboard-card"><span class="dash-label">RATINGS</span><h3>5.0 ★</h3><p>Your rider rating from completed trips will appear here.</p></section>
 <section class="dashboard-card"><span class="dash-label">PAYMENTS</span><h3>Payment methods</h3><p>Apple Pay and debit/credit card will be available through the secure payment backend. PayPal remains planned.</p><button class="button secondary dark-outline dashboard-demo-action" type="button" data-dashboard-action="payment">Manage payment methods</button></section>
