@@ -5,24 +5,24 @@
 <div class="dashboard-grid">
 <section class="dashboard-card dashboard-wallet"><div class="dashboard-card-top"><div><span class="dash-label">DRIVER WALLET</span><strong class="dash-balance">$0.00</strong><small>Available balance</small></div><a href="wallets.html">Open Wallet →</a></div><div class="dash-stats"><div><b>$0.00</b><span>Pending</span></div><div><b>$0.00</b><span>This week</span></div><div><b>0</b><span>Paid rides</span></div></div></section>
 <section class="dashboard-card driver-offer-card" id="driverNegotiationPreview">
-      <span class="dash-label">INCOMING RIDE REQUEST</span>
+      <span class="dash-label">INCOMING RIDE REQUEST</span><input type="hidden" id="driverLiveRideId" value="">
       <div class="driver-net-earnings">
         <span>YOU EARN</span>
-        <strong id="driverNetOffer">$16.60</strong>
+        <strong id="driverNetOffer">—</strong>
         <small>Net amount you receive</small>
       </div>
       <div class="driver-offer-route">
-        <div><span>Pickup</span><strong>Pickup location</strong></div>
-        <div><span>Destination area</span><strong>Buckhead</strong></div>
+        <div><span>Pickup</span><strong id="driverRidePickup">Waiting for live request</strong></div>
+        <div><span>Destination</span><strong id="driverRideDestination">—</strong></div>
       </div>
       <div class="driver-request-metrics">
-        <div><span>Pickup</span><strong>4 min · 1.2 mi</strong></div>
-        <div><span>Trip</span><strong>18 min · 8.4 mi</strong></div>
-        <div><span>Net / mile</span><strong>$1.98</strong></div>
+        <div><span>Pickup</span><strong id="driverPickupMetric">—</strong></div>
+        <div><span>Trip</span><strong id="driverTripMetric">—</strong></div>
+        <div><span>Net / mile</span><strong id="driverPerMileMetric">—</strong></div>
         <div><span>Active-time estimate</span><strong>~$45/hr</strong></div>
       </div>
       <div class="driver-offer-actions">
-        <button class="button primary" id="driverAcceptNetOffer" type="button">Accept $16.60</button>
+        <button class="button primary" id="driverAcceptNetOffer" type="button">Accept Ride</button>
         <button class="button secondary dark-outline" id="driverOpenCounter" type="button">Counter</button>
         <button class="button secondary dark-outline" id="driverDeclineNetOffer" type="button">Decline</button>
       </div>
