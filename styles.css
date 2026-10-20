@@ -368,3 +368,13 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .driver-counter-input input{width:100%;border:0;outline:0;padding:12px;font:inherit}
 .driver-counter-panel p,.driver-net-rule{font-size:11px!important;color:#69707d!important;line-height:1.55!important;margin-top:10px!important}
 @media(max-width:650px){.driver-offer-route{grid-template-columns:1fr}.driver-offer-actions{display:grid}}
+
+.r100-address-search{position:relative}
+.r100-address-search>input{width:100%}
+.r100-suggestions{position:absolute;z-index:60;left:0;right:0;top:calc(100% + 6px);background:#fff;border:1px solid #d8e2ec;border-radius:14px;box-shadow:0 18px 42px rgba(16,24,40,.16);overflow:hidden;max-height:320px;overflow-y:auto}
+.r100-suggestions[hidden]{display:none}
+.r100-suggestion{display:block;width:100%;border:0;border-bottom:1px solid #edf1f5;background:#fff;padding:12px 14px;text-align:left;cursor:pointer}
+.r100-suggestion:last-child{border-bottom:0}
+.r100-suggestion:hover,.r100-suggestion:focus-visible{background:#f2f8fd}
+.r100-suggestion strong{display:block;color:#102033;font-size:13px}
+.r100-suggestion span{display:block;margin-top:3px;color:#69707d;font-size:11px;line-height:1.35}
