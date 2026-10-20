@@ -163,3 +163,6 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .form-status{min-height:24px;margin-top:12px;color:#40506a;font-weight:800;font-size:13px}
 .signup-note{max-width:760px;margin-top:18px;padding:16px 18px;border-radius:14px;background:#f7f9fb;color:#526071;font-size:13px;line-height:1.6;border:1px solid #e3e8ee}
 @media(max-width:650px){.form-grid{grid-template-columns:1fr}}
+
+.hp-field{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}
+.signup-submit[disabled]{opacity:.65;cursor:not-allowed}
