@@ -130,3 +130,9 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .legal-card p{color:var(--muted);line-height:1.75;margin:0}
 .legal-card a{color:#0b67a8;font-weight:800}
 @media(max-width:520px){.legal-card{padding:22px 18px}}
+
+:focus-visible{outline:3px solid #8ECDF4;outline-offset:3px}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
