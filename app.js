@@ -800,3 +800,45 @@ if (document.getElementById('businessAuditTrail')) {
     if (status) status.textContent = 'Preview audit log cleared from this browser session only.';
   });
 }
+
+
+const driverOpenCounter = document.getElementById('driverOpenCounter');
+const driverCounterPanel = document.getElementById('driverCounterPanel');
+const driverCounterNet = document.getElementById('driverCounterNet');
+const driverNetOffer = document.getElementById('driverNetOffer');
+const driverAcceptNetOffer = document.getElementById('driverAcceptNetOffer');
+const driverDeclineNetOffer = document.getElementById('driverDeclineNetOffer');
+const driverSendCounter = document.getElementById('driverSendCounter');
+
+if (driverOpenCounter && driverCounterPanel) {
+  driverOpenCounter.addEventListener('click', () => {
+    driverCounterPanel.hidden = !driverCounterPanel.hidden;
+    if (!driverCounterPanel.hidden) driverCounterNet?.focus();
+  });
+}
+
+driverAcceptNetOffer?.addEventListener('click', () => {
+  const status = document.getElementById('dashboardStatus');
+  const net = driverNetOffer?.textContent || '';
+  if (status) status.textContent = 'Ride accepted at ' + net + ' net earnings in this development preview.';
+});
+
+driverDeclineNetOffer?.addEventListener('click', () => {
+  const status = document.getElementById('dashboardStatus');
+  if (status) status.textContent = 'Ride declined in this development preview.';
+});
+
+driverSendCounter?.addEventListener('click', () => {
+  const status = document.getElementById('dashboardStatus');
+  const value = Number(driverCounterNet?.value || 0);
+  if (!Number.isFinite(value) || value <= 0) {
+    if (status) status.textContent = 'Enter the net amount you want to earn.';
+    return;
+  }
+
+  const formatted = '$' + value.toFixed(2);
+  if (driverNetOffer) driverNetOffer.textContent = formatted;
+  if (driverAcceptNetOffer) driverAcceptNetOffer.textContent = 'Accept ' + formatted;
+  if (driverCounterPanel) driverCounterPanel.hidden = true;
+  if (status) status.textContent = 'Counter sent for ' + formatted + ' net earnings. Rider total is calculated internally and is not shown to the driver.';
+});
