@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rides100.com/sitemap.xml
