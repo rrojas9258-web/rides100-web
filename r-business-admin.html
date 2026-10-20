@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>R-Business Admin — Rides100 Development</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="index.html"><img class="brand-logo" src="assets/rides100-logo.png" alt="Rides100"></a>
+  <nav class="desktop-nav" aria-label="Private development navigation">
+    <a href="r-business.html">R-Business</a>
+    <a href="r-business-admin.html" aria-current="page">Business Admin</a>
+    <a href="driver-dashboard.html">Driver Dashboard</a>
+    <a href="wallets.html">Wallets</a>
+  </nav>
+</header>
+
+<main class="section business-admin-page">
+  <div class="dashboard-head">
+    <div>
+      <div class="eyebrow dark">PRIVATE ADMIN DEVELOPMENT PREVIEW</div>
+      <h2>R-Business Management</h2>
+      <p>Review event transportation requests, fleet demand and qualified-driver readiness. This page does not perform live admin writes.</p>
+    </div>
+    <span class="admin-lock-pill">ADMIN ONLY</span>
+  </div>
+
+  <div class="business-admin-summary">
+    <article><span>OPEN REQUESTS</span><strong id="adminOpenRequests">0</strong><small>Development preview</small></article>
+    <article><span>VEHICLES REQUESTED</span><strong id="adminVehiclesRequested">0</strong><small>Across prepared events</small></article>
+    <article><span>QUALIFIED DRIVERS</span><strong>0</strong><small>Backend connection pending</small></article>
+    <article><span>UNASSIGNED</span><strong id="adminUnassigned">0</strong><small>Events needing review</small></article>
+  </div>
+
+  <section class="admin-panel">
+    <div class="admin-panel-head">
+      <div><span class="dash-label">EVENT REQUESTS</span><h3>Prepared R-Business requests</h3></div>
+      <button class="button secondary dark-outline admin-demo-action" type="button" data-admin-action="refresh">Refresh preview</button>
+    </div>
+    <div id="businessAdminEmpty" class="empty-dashboard-state">No prepared R-Business request found in this browser session.</div>
+    <div id="businessAdminRequest" class="business-admin-request" hidden>
+      <div class="business-admin-main">
+        <span class="request-status-pill">PREPARED</span>
+        <h3 id="adminEventName">Event</h3>
+        <p id="adminOrg"></p>
+        <div class="admin-route"><strong id="adminPickup"></strong><span>→</span><strong id="adminDestination"></strong></div>
+        <div class="admin-meta-grid">
+          <div><span>Scheduled</span><strong id="adminScheduled"></strong></div>
+          <div><span>Passengers</span><strong id="adminPassengers"></strong></div>
+          <div><span>Total vehicles</span><strong id="adminVehicleTotal"></strong></div>
+          <div><span>Contact</span><strong id="adminContact"></strong></div>
+        </div>
+      </div>
+      <div class="business-admin-fleet">
+        <span class="dash-label">FLEET REQUEST</span>
+        <div class="fleet-mini-grid">
+          <div><span>R-Standard</span><strong id="fleetStandard">0</strong></div>
+          <div><span>R-Van</span><strong id="fleetVan">0</strong></div>
+          <div><span>R-Black</span><strong id="fleetBlack">0</strong></div>
+          <div><span>R-SUV Black</span><strong id="fleetSuv">0</strong></div>
+        </div>
+      </div>
+      <div class="admin-action-row">
+        <button class="button primary admin-demo-action" type="button" data-admin-action="review">Start Review</button>
+        <button class="button secondary dark-outline admin-demo-action" type="button" data-admin-action="assign">Assign Drivers</button>
+        <button class="button secondary dark-outline admin-demo-action" type="button" data-admin-action="notes">Add Admin Note</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="admin-panel">
+    <div class="admin-panel-head">
+      <div><span class="dash-label">DRIVER ELIGIBILITY</span><h3>R-Business qualified-driver pool</h3></div>
+      <span class="admin-lock-pill">SERVER CONTROLLED</span>
+    </div>
+    <div class="driver-eligibility-grid">
+      <article><strong>Compliance</strong><span>Approved driver account required</span></article>
+      <article><strong>Service quality</strong><span>Ratings and service history reviewed</span></article>
+      <article><strong>Vehicle quality</strong><span>Eligible vehicle class and condition</span></article>
+      <article><strong>Availability</strong><span>Driver must confirm event availability</span></article>
+    </div>
+    <p class="admin-security-note">Drivers cannot activate R-Business eligibility themselves. Production eligibility and event assignments must be authorized through authenticated Rides100 admin/backend systems with audit logging.</p>
+  </section>
+
+  <div id="businessAdminStatus" class="form-status" role="status" aria-live="polite"></div>
+</main>
+<script src="app.js"></script>
+</body>
+</html>
