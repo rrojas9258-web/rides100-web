@@ -7,6 +7,13 @@
 <section class="dashboard-card"><span class="dash-label">DRIVER GRADE</span><h3>New Driver</h3><p>Stars, Diamonds and service history will build your Driver Grade.</p></section>
 <section class="dashboard-card"><span class="dash-label">RATINGS</span><h3>5.0 ★</h3><p>Average rider rating after completed trips.</p></section>
 <section class="dashboard-card"><span class="dash-label">VEHICLE & COMPLIANCE</span><h3>Review required</h3><p>License, insurance, registration, vehicle details and approval status will appear here.</p><button class="button secondary dark-outline dashboard-demo-action" type="button" data-dashboard-action="compliance">Open compliance</button></section>
-<section class="dashboard-card"><span class="dash-label">R-BUSINESS</span><h3>Not activated</h3><p>Rides100 will selectively activate qualified drivers and vehicles for business/event assignments.</p></section>
+<section class="dashboard-card" id="driverBusinessAssignments">
+      <span class="dash-label">R-BUSINESS ASSIGNMENTS</span>
+      <h3>Event invitations</h3>
+      <p>Qualified drivers can review a business assignment and confirm availability.</p>
+      <div id="driverBusinessAssignmentList" class="driver-business-assignment-list">
+        <div class="empty-dashboard-state">No R-Business assignment invitation in this browser session.</div>
+      </div>
+    </section>
 <section class="dashboard-card"><span class="dash-label">RECENT EARNINGS</span><div class="empty-dashboard-state">No completed paid rides yet.</div></section>
 </div><div id="dashboardStatus" class="form-status" role="status"></div></main><script src="app.js"></script></body></html>
