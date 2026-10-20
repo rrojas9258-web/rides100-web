@@ -601,3 +601,101 @@ if (document.getElementById('driverAssignmentPanel')) {
     if (status) status.textContent = 'Qualified driver added as Pending in this development preview.';
   });
 }
+
+
+function renderDriverBusinessInvites() {
+  const list = document.getElementById('driverBusinessAssignmentList');
+  if (!list) return;
+
+  const request = getPreparedBusinessRequest();
+  const assignments = readAssignmentPreview();
+  list.innerHTML = '';
+
+  if (!request || !assignments.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-dashboard-state';
+    empty.textContent = 'No R-Business assignment invitation in this browser session.';
+    list.appendChild(empty);
+    return;
+  }
+
+  assignments.forEach((row) => {
+    const card = document.createElement('div');
+    card.className = 'driver-business-invite';
+
+    const title = document.createElement('h4');
+    title.textContent = request.eventName || 'R-Business event';
+
+    const org = document.createElement('p');
+    org.textContent = request.org || '';
+
+    const meta = document.createElement('div');
+    meta.className = 'driver-business-invite-meta';
+
+    const labelMap = { standard: 'R-Standard', van: 'R-Van', black: 'R-Black', blackSuv: 'R-SUV Black' };
+    const items = [
+      ['Vehicle', labelMap[row.vehicleType] || row.vehicleType],
+      ['Pickup', request.pickup || '—'],
+      ['Destination', request.destination || '—'],
+      ['Scheduled', request.scheduledFor ? new Date(request.scheduledFor).toLocaleString() : '—'],
+    ];
+    items.forEach(([label, value]) => {
+      const box = document.createElement('div');
+      const a = document.createElement('span');
+      a.textContent = label;
+      const b = document.createElement('strong');
+      b.textContent = value;
+      box.append(a, b);
+      meta.appendChild(box);
+    });
+
+    const actions = document.createElement('div');
+    actions.className = 'driver-business-response';
+
+    const status = document.createElement('span');
+    status.className = 'driver-response-status' + (row.status === 'accepted' ? ' accepted' : row.status === 'declined' ? ' declined' : '');
+    status.textContent = row.status.charAt(0).toUpperCase() + row.status.slice(1);
+
+    const accept = document.createElement('button');
+    accept.className = 'button primary';
+    accept.type = 'button';
+    accept.textContent = 'Accept';
+    accept.disabled = row.status === 'accepted';
+    accept.addEventListener('click', () => {
+      const current = readAssignmentPreview();
+      const next = current.map((entry) => entry.id === row.id ? { ...entry, status: 'accepted' } : entry);
+      writeAssignmentPreview(next);
+      renderDriverBusinessInvites();
+      const accepted = next.filter((entry) => entry.status === 'accepted').length;
+      const required = Number(getPreparedBusinessRequest()?.totalVehicles || 0);
+      if (required > 0) {
+        if (accepted >= required) writeBusinessPreviewStatus('assigned');
+        else if (accepted > 0) writeBusinessPreviewStatus('partially_assigned');
+      }
+      const dashboardStatus = document.getElementById('dashboardStatus');
+      if (dashboardStatus) dashboardStatus.textContent = 'R-Business assignment accepted in this development preview.';
+    });
+
+    const decline = document.createElement('button');
+    decline.className = 'button secondary dark-outline';
+    decline.type = 'button';
+    decline.textContent = 'Decline';
+    decline.disabled = row.status === 'declined';
+    decline.addEventListener('click', () => {
+      const current = readAssignmentPreview();
+      const next = current.map((entry) => entry.id === row.id ? { ...entry, status: 'declined' } : entry);
+      writeAssignmentPreview(next);
+      renderDriverBusinessInvites();
+      const dashboardStatus = document.getElementById('dashboardStatus');
+      if (dashboardStatus) dashboardStatus.textContent = 'R-Business assignment declined in this development preview.';
+    });
+
+    actions.append(status, accept, decline);
+    card.append(title, org, meta, actions);
+    list.appendChild(card);
+  });
+}
+
+if (document.getElementById('driverBusinessAssignments')) {
+  renderDriverBusinessInvites();
+}
