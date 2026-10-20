@@ -397,3 +397,61 @@ if (businessAdminRequest) {
     });
   });
 }
+
+
+const businessStatusSteps = ['prepared','reviewing','approved','partially_assigned','assigned','completed'];
+
+function readBusinessPreviewStatus() {
+  const raw = sessionStorage.getItem('r100BusinessAdminStatus') || 'prepared';
+  return businessStatusSteps.includes(raw) ? raw : 'prepared';
+}
+
+function writeBusinessPreviewStatus(next) {
+  if (!businessStatusSteps.includes(next)) return;
+  sessionStorage.setItem('r100BusinessAdminStatus', next);
+  renderBusinessPreviewStatus();
+}
+
+function renderBusinessPreviewStatus() {
+  const current = readBusinessPreviewStatus();
+  const currentIndex = businessStatusSteps.indexOf(current);
+  const badge = document.getElementById('businessCurrentStatus');
+  if (badge) badge.textContent = current.replaceAll('_', ' ').toUpperCase();
+
+  document.querySelectorAll('[data-business-status]').forEach((item) => {
+    const index = businessStatusSteps.indexOf(item.dataset.businessStatus || '');
+    item.classList.toggle('done', index >= 0 && index < currentIndex);
+    item.classList.toggle('active', index === currentIndex);
+  });
+
+  const unassigned = document.getElementById('adminUnassigned');
+  if (unassigned) {
+    unassigned.textContent = ['assigned','completed'].includes(current) ? '0' : '1';
+  }
+}
+
+if (document.getElementById('businessStatusFlow')) {
+  renderBusinessPreviewStatus();
+
+  document.querySelectorAll('.admin-demo-action').forEach((button) => {
+    button.addEventListener('click', () => {
+      const action = button.dataset.adminAction || '';
+      const status = document.getElementById('businessAdminStatus');
+
+      if (action === 'advance-status') {
+        const current = readBusinessPreviewStatus();
+        const index = businessStatusSteps.indexOf(current);
+        const next = businessStatusSteps[Math.min(index + 1, businessStatusSteps.length - 1)];
+        writeBusinessPreviewStatus(next);
+        if (status) status.textContent = next === current
+          ? 'Event is already at Completed in this development preview.'
+          : `Preview status advanced to ${next.replaceAll('_', ' ')}. No production data was changed.`;
+      }
+
+      if (action === 'reset-status') {
+        writeBusinessPreviewStatus('prepared');
+        if (status) status.textContent = 'Preview status reset to Prepared. No production data was changed.';
+      }
+    });
+  });
+}
