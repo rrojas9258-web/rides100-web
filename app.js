@@ -455,3 +455,149 @@ if (document.getElementById('businessStatusFlow')) {
     });
   });
 }
+
+
+function readAssignmentPreview() {
+  try {
+    const rows = JSON.parse(sessionStorage.getItem('r100BusinessAssignments') || '[]');
+    return Array.isArray(rows) ? rows : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeAssignmentPreview(rows) {
+  sessionStorage.setItem('r100BusinessAssignments', JSON.stringify(rows));
+  renderAssignmentPreview();
+}
+
+function getPreparedBusinessRequest() {
+  try {
+    return JSON.parse(sessionStorage.getItem('r100PendingBusinessRequest') || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function requestedCountForType(request, type) {
+  const fleet = request?.fleet || {};
+  return Number(fleet[type] || 0);
+}
+
+function renderAssignmentPreview() {
+  const list = document.getElementById('assignmentList');
+  if (!list) return;
+
+  const request = getPreparedBusinessRequest();
+  const required = Number(request?.totalVehicles || 0);
+  const rows = readAssignmentPreview();
+
+  const accepted = rows.filter((row) => row.status === 'accepted').length;
+  const pending = rows.filter((row) => row.status === 'pending').length;
+  const remaining = Math.max(required - accepted, 0);
+
+  document.getElementById('assignmentRequired').textContent = String(required);
+  document.getElementById('assignmentAccepted').textContent = String(accepted);
+  document.getElementById('assignmentPending').textContent = String(pending);
+  document.getElementById('assignmentRemaining').textContent = String(remaining);
+
+  list.innerHTML = '';
+  if (!rows.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-dashboard-state';
+    empty.textContent = 'No drivers added to this event preview yet.';
+    list.appendChild(empty);
+  } else {
+    rows.forEach((row) => {
+      const item = document.createElement('div');
+      item.className = 'assignment-row';
+
+      const main = document.createElement('div');
+      main.className = 'assignment-row-main';
+      const name = document.createElement('strong');
+      name.textContent = row.name;
+      const meta = document.createElement('span');
+      const labelMap = { standard: 'R-Standard', van: 'R-Van', black: 'R-Black', blackSuv: 'R-SUV Black' };
+      meta.textContent = labelMap[row.vehicleType] || row.vehicleType;
+      main.append(name, meta);
+
+      const select = document.createElement('select');
+      select.className = 'assignment-status';
+      ['pending','accepted','declined'].forEach((statusValue) => {
+        const option = document.createElement('option');
+        option.value = statusValue;
+        option.textContent = statusValue.charAt(0).toUpperCase() + statusValue.slice(1);
+        option.selected = row.status === statusValue;
+        select.appendChild(option);
+      });
+      select.addEventListener('change', () => {
+        const current = readAssignmentPreview();
+        const next = current.map((entry) => entry.id === row.id ? { ...entry, status: select.value } : entry);
+        writeAssignmentPreview(next);
+
+        const nextAccepted = next.filter((entry) => entry.status === 'accepted').length;
+        const requiredVehicles = Number(getPreparedBusinessRequest()?.totalVehicles || 0);
+        if (requiredVehicles > 0) {
+          if (nextAccepted >= requiredVehicles) writeBusinessPreviewStatus('assigned');
+          else if (nextAccepted > 0) writeBusinessPreviewStatus('partially_assigned');
+        }
+      });
+
+      const remove = document.createElement('button');
+      remove.className = 'assignment-remove';
+      remove.type = 'button';
+      remove.textContent = 'Remove';
+      remove.addEventListener('click', () => {
+        writeAssignmentPreview(readAssignmentPreview().filter((entry) => entry.id !== row.id));
+      });
+
+      item.append(main, select, remove);
+      list.appendChild(item);
+    });
+  }
+}
+
+if (document.getElementById('driverAssignmentPanel')) {
+  renderAssignmentPreview();
+
+  const addButton = document.getElementById('addAssignmentDriver');
+  addButton?.addEventListener('click', () => {
+    const request = getPreparedBusinessRequest();
+    const nameInput = document.getElementById('assignmentDriverName');
+    const typeInput = document.getElementById('assignmentVehicleType');
+    const status = document.getElementById('businessAdminStatus');
+    const name = nameInput?.value.trim() || '';
+    const vehicleType = typeInput?.value || 'standard';
+
+    if (!request) {
+      if (status) status.textContent = 'Prepare an R-Business event first before assigning drivers.';
+      return;
+    }
+    if (name.length < 2) {
+      if (status) status.textContent = 'Enter a qualified driver name for this preview.';
+      return;
+    }
+
+    const requested = requestedCountForType(request, vehicleType);
+    const current = readAssignmentPreview();
+    const alreadyForType = current.filter((row) => row.vehicleType === vehicleType && row.status !== 'declined').length;
+    if (requested < 1) {
+      if (status) status.textContent = 'This event did not request that vehicle category.';
+      return;
+    }
+    if (alreadyForType >= requested) {
+      if (status) status.textContent = 'All requested vehicles in that category already have a driver in this preview.';
+      return;
+    }
+
+    current.push({
+      id: 'preview-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+      name,
+      vehicleType,
+      status: 'pending',
+    });
+    writeAssignmentPreview(current);
+    if (nameInput) nameInput.value = '';
+    if (status) status.textContent = 'Qualified driver added as Pending in this development preview.';
+  });
+}
