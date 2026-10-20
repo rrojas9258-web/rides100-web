@@ -85,6 +85,21 @@
   </div>
 </div>
 
+<section class="ride-map-card" id="rideMapPreview">
+  <div class="ride-map-head">
+    <div><span class="dash-label">ROUTE PREVIEW</span><strong id="rideMapTitle">Choose pickup and destination</strong></div>
+    <div class="ride-map-stats">
+      <span><b id="rideMapDistance">—</b> miles</span>
+      <span><b id="rideMapEta">—</b> min</span>
+    </div>
+  </div>
+  <div class="ride-map-frame">
+    <img id="rideMapImage" alt="Rides100 route map preview" hidden>
+    <div id="rideMapEmpty" class="ride-map-empty">Select pickup and destination from the address suggestions to see your route.</div>
+  </div>
+  <div id="rideMapStatus" class="form-status" role="status" aria-live="polite"></div>
+</section>
+
 <input type="hidden" id="webRideType" value="standard">
 <label class="form-field"><span>Your offer</span>
   <div class="driver-counter-input"><span>$</span><input id="webRiderOffer" type="number" min="1" step="0.01" inputmode="decimal" placeholder="20.00" required></div>
