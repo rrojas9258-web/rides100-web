@@ -338,3 +338,62 @@ document.querySelectorAll('.dashboard-demo-action').forEach((button) => {
     if (status) status.textContent = messages[action] || 'This dashboard action is still in private development.';
   });
 });
+
+
+const businessAdminRequest = document.getElementById('businessAdminRequest');
+if (businessAdminRequest) {
+  const empty = document.getElementById('businessAdminEmpty');
+  const status = document.getElementById('businessAdminStatus');
+
+  function loadBusinessAdminPreview() {
+    let pending = null;
+    try { pending = JSON.parse(sessionStorage.getItem('r100PendingBusinessRequest') || 'null'); } catch {}
+    if (!pending) {
+      businessAdminRequest.hidden = true;
+      if (empty) empty.hidden = false;
+      document.getElementById('adminOpenRequests').textContent = '0';
+      document.getElementById('adminVehiclesRequested').textContent = '0';
+      document.getElementById('adminUnassigned').textContent = '0';
+      return;
+    }
+
+    const fleet = pending.fleet || {};
+    const total = Number(pending.totalVehicles || 0);
+    businessAdminRequest.hidden = false;
+    if (empty) empty.hidden = true;
+    document.getElementById('adminOpenRequests').textContent = '1';
+    document.getElementById('adminVehiclesRequested').textContent = String(total);
+    document.getElementById('adminUnassigned').textContent = '1';
+    document.getElementById('adminEventName').textContent = pending.eventName || 'Prepared event';
+    document.getElementById('adminOrg').textContent = pending.org || '';
+    document.getElementById('adminPickup').textContent = pending.pickup || 'Pickup';
+    document.getElementById('adminDestination').textContent = pending.destination || 'Destination';
+    document.getElementById('adminScheduled').textContent = pending.scheduledFor ? new Date(pending.scheduledFor).toLocaleString() : '—';
+    document.getElementById('adminPassengers').textContent = String(pending.passengers || 0);
+    document.getElementById('adminVehicleTotal').textContent = String(total);
+    document.getElementById('adminContact').textContent = pending.contact || pending.email || '—';
+    document.getElementById('fleetStandard').textContent = String(fleet.standard || 0);
+    document.getElementById('fleetVan').textContent = String(fleet.van || 0);
+    document.getElementById('fleetBlack').textContent = String(fleet.black || 0);
+    document.getElementById('fleetSuv').textContent = String(fleet.blackSuv || 0);
+  }
+
+  loadBusinessAdminPreview();
+
+  document.querySelectorAll('.admin-demo-action').forEach((button) => {
+    button.addEventListener('click', () => {
+      const action = button.dataset.adminAction || '';
+      if (action === 'refresh') {
+        loadBusinessAdminPreview();
+        if (status) status.textContent = 'Preview refreshed from this browser session. No backend data was changed.';
+        return;
+      }
+      const messages = {
+        review: 'Admin review preview only. Production status changes will require authenticated admin authorization and audit logging.',
+        assign: 'Driver assignment preview only. Production assignment will require eligible drivers, availability confirmation and trusted backend authorization.',
+        notes: 'Admin notes preview only. Production notes will be stored in the protected back-office system.',
+      };
+      if (status) status.textContent = messages[action] || 'Admin action is not active in this development preview.';
+    });
+  });
+}
