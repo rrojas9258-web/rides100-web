@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sign Up — Rides100</title>
+  <meta name="description" content="Join the Rides100 launch list as a rider or driver.">
+  <link rel="canonical" href="https://rides100.com/signup.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Rides100">
+  <meta property="og:title" content="Sign Up — Rides100">
+  <meta property="og:description" content="Join the Rides100 launch list as a rider or driver.">
+  <meta property="og:url" content="https://rides100.com/signup.html">
+  <meta name="twitter:card" content="summary">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="index.html" aria-label="Rides100 home"><img class="brand-logo" src="assets/rides100-logo.png" alt="Rides100"></a>
+  <nav class="desktop-nav" aria-label="Primary navigation">
+    <a href="riders.html">Riders</a>
+    <a href="drivers.html">Drivers</a>
+    <a href="index.html#safety">Safety</a>
+    <a href="support.html">Support</a>
+    <a href="faq.html">FAQ</a>
+  </nav>
+  <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">☰</button>
+  <div class="mobile-menu" id="mobileMenu" hidden>
+    <a href="riders.html">Riders</a>
+    <a href="drivers.html">Drivers</a>
+    <a href="index.html#safety">Safety</a>
+    <a href="support.html">Support</a>
+    <a href="faq.html">FAQ</a>
+  </div>
+</header>
+
+<main class="section page-hero signup-page">
+  <div class="section-head">
+    <div class="eyebrow dark">JOIN RIDES100</div>
+    <h2>Be ready for launch.</h2>
+    <p class="page-lead">Choose Rider or Driver below. This form registers your launch interest; it does not create an active ride account yet.</p>
+  </div>
+
+  <div class="signup-switch" role="tablist" aria-label="Signup type">
+    <button class="signup-tab active" id="riderTab" type="button" role="tab" aria-selected="true" aria-controls="signupForm" data-signup-type="rider">Rider</button>
+    <button class="signup-tab" id="driverTab" type="button" role="tab" aria-selected="false" aria-controls="signupForm" data-signup-type="driver">Driver</button>
+  </div>
+
+  <form class="signup-form card" id="signupForm" novalidate>
+    <input type="hidden" id="signupType" name="signupType" value="rider">
+
+    <label class="form-field">
+      <span>Full name</span>
+      <input id="signupName" name="name" type="text" autocomplete="name" maxlength="100" required>
+    </label>
+
+    <div class="form-grid">
+      <label class="form-field">
+        <span>Email</span>
+        <input id="signupEmail" name="email" type="email" autocomplete="email" maxlength="160" required>
+      </label>
+      <label class="form-field">
+        <span>Phone</span>
+        <input id="signupPhone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="30">
+      </label>
+    </div>
+
+    <label class="form-field">
+      <span>City / launch market</span>
+      <input id="signupCity" name="city" type="text" autocomplete="address-level2" maxlength="100" placeholder="Atlanta, GA">
+    </label>
+
+    <div id="driverFields" hidden>
+      <label class="form-field">
+        <span>Vehicle</span>
+        <input id="signupVehicle" name="vehicle" type="text" maxlength="120" placeholder="Year, make, model">
+      </label>
+      <p class="form-help">Driver activation will require separate identity, vehicle, insurance, background-check, and market-specific approval before any rides can be accepted.</p>
+    </div>
+
+    <label class="consent-row">
+      <input id="signupConsent" type="checkbox" required>
+      <span>I agree that Rides100 may contact me about launch availability and onboarding. See the <a href="privacy.html">Privacy Policy</a>.</span>
+    </label>
+
+    <button class="button primary signup-submit" type="submit">Join Rider Launch List</button>
+    <div class="form-status" id="signupStatus" role="status" aria-live="polite"></div>
+  </form>
+
+  <div class="signup-note">
+    <strong>Security note:</strong> Do not submit passwords, Social Security numbers, driver's-license images, payment-card numbers, or other sensitive identity documents through this launch-interest form.
+  </div>
+</main>
+
+<footer><div><strong>Rides100</strong> is operated by <strong>RISCASAN LLC</strong>.</div><div class="footer-links"><a href="index.html">Home</a><a href="riders.html">Riders</a><a href="drivers.html">Drivers</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="support.html">Support</a></div><div class="copyright">© 2026 RISCASAN LLC. All rights reserved.</div></footer>
+
+<script src="app.js"></script>
+</body>
+</html>
