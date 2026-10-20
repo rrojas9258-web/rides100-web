@@ -106,6 +106,17 @@
 
   <section class="admin-panel">
     <div class="admin-panel-head">
+      <div><span class="dash-label">ASSIGNMENT AUDIT TRAIL</span><h3>Preview history</h3></div>
+      <button id="clearBusinessAudit" class="button secondary dark-outline" type="button">Clear Preview Log</button>
+    </div>
+    <div id="businessAuditTrail" class="business-audit-trail">
+      <div class="empty-dashboard-state">No assignment activity recorded in this browser session.</div>
+    </div>
+    <p class="admin-security-note">Production audit logs should be append-only, server-generated, access-controlled and not editable by drivers.</p>
+  </section>
+
+  <section class="admin-panel">
+    <div class="admin-panel-head">
       <div><span class="dash-label">DRIVER ELIGIBILITY</span><h3>R-Business qualified-driver pool</h3></div>
       <span class="admin-lock-pill">SERVER CONTROLLED</span>
     </div>
