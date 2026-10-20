@@ -4,6 +4,32 @@
 <main class="section dashboard-page"><div class="dashboard-head"><div><div class="eyebrow dark">PRIVATE DEVELOPMENT PREVIEW</div><h2>Driver Dashboard</h2><p>Earnings, wallet, trips, ratings, vehicle, compliance and R-Business status.</p></div><span class="driver-status-pill">OFFLINE</span></div>
 <div class="dashboard-grid">
 <section class="dashboard-card dashboard-wallet"><div class="dashboard-card-top"><div><span class="dash-label">DRIVER WALLET</span><strong class="dash-balance">$0.00</strong><small>Available balance</small></div><a href="wallets.html">Open Wallet →</a></div><div class="dash-stats"><div><b>$0.00</b><span>Pending</span></div><div><b>$0.00</b><span>This week</span></div><div><b>0</b><span>Paid rides</span></div></div></section>
+<section class="dashboard-card driver-offer-card" id="driverNegotiationPreview">
+      <span class="dash-label">INCOMING RIDE REQUEST</span>
+      <div class="driver-net-earnings">
+        <span>YOU EARN</span>
+        <strong id="driverNetOffer">$18.00</strong>
+        <small>Net amount you receive</small>
+      </div>
+      <div class="driver-offer-route">
+        <div><span>Pickup</span><strong>Pickup location</strong></div>
+        <div><span>Destination</span><strong>Destination</strong></div>
+      </div>
+      <div class="driver-offer-actions">
+        <button class="button primary" id="driverAcceptNetOffer" type="button">Accept $18.00</button>
+        <button class="button secondary dark-outline" id="driverOpenCounter" type="button">Counter</button>
+        <button class="button secondary dark-outline" id="driverDeclineNetOffer" type="button">Decline</button>
+      </div>
+      <div id="driverCounterPanel" class="driver-counter-panel" hidden>
+        <label>
+          <span>How much do you want to earn?</span>
+          <div class="driver-counter-input"><span>$</span><input id="driverCounterNet" type="number" min="1" step="0.01" inputmode="decimal" placeholder="22.00"></div>
+        </label>
+        <button class="button primary" id="driverSendCounter" type="button">Send Counter</button>
+        <p>You enter only the net amount you want to receive. Rides100 calculates the rider total internally.</p>
+      </div>
+      <p class="driver-net-rule">Driver-facing prices are always net earnings. The rider's original total is not shown here.</p>
+    </section>
 <section class="dashboard-card"><span class="dash-label">DRIVER GRADE</span><h3>New Driver</h3><p>Stars, Diamonds and service history will build your Driver Grade.</p></section>
 <section class="dashboard-card"><span class="dash-label">RATINGS</span><h3>5.0 ★</h3><p>Average rider rating after completed trips.</p></section>
 <section class="dashboard-card"><span class="dash-label">VEHICLE & COMPLIANCE</span><h3>Review required</h3><p>License, insurance, registration, vehicle details and approval status will appear here.</p><button class="button secondary dark-outline dashboard-demo-action" type="button" data-dashboard-action="compliance">Open compliance</button></section>
