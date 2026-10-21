@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Driver Review — Rides100 Development</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-r100-require-auth="true" data-r100-role="rider">
+<header class="nav">
+<a class="brand" href="index.html"><img class="brand-logo" src="assets/rides100-logo.png" alt="Rides100"></a>
+<button class="button secondary dark-outline" type="button" data-r100-signout>Sign Out</button>
+</header>
+<main class="section dashboard-page">
+<div class="dashboard-head"><div><div class="eyebrow dark">PRIVATE ADMIN DEVELOPMENT</div><h2>Driver Compliance Review</h2><p>Only users explicitly added to the protected Rides100 admin table can access this queue.</p></div></div>
+<section class="dashboard-card">
+<div id="adminDriverQueue"><div class="empty-dashboard-state">Loading compliance queue…</div></div>
+</section>
+<div id="dashboardStatus" class="form-status" role="status"></div>
+</main>
+<script src="app.js"></script><script type="module" src="r100-auth.js"></script>
+</body></html>
