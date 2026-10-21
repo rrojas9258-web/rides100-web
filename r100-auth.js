@@ -5,6 +5,7 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Pj1o3idV7wjYgi3xkbQtFw_sVXbHnmC
 const RIDES_ENDPOINT = SUPABASE_URL + '/functions/v1/r100-rides';
 const COMPLIANCE_ENDPOINT = SUPABASE_URL + '/functions/v1/r100-driver-compliance';
 const SAFETY_ENDPOINT = SUPABASE_URL + '/functions/v1/r100-safety';
+const ADMIN_REVIEW_ENDPOINT = SUPABASE_URL + '/functions/v1/r100-admin-review';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
@@ -75,6 +76,10 @@ async function callSafety(action, payload = {}) {
   return callProtectedEndpoint(SAFETY_ENDPOINT, { action, ...payload });
 }
 
+async function callAdminReview(action, payload = {}) {
+  return callProtectedEndpoint(ADMIN_REVIEW_ENDPOINT, { action, ...payload });
+}
+
 async function upsertProfile(profile = {}) {
   const session = await getSession();
   if (!session?.user?.id) throw new Error('Sign in is required.');
@@ -100,7 +105,7 @@ async function driverStatus() {
   return data || null;
 }
 
-window.R100Auth = { supabase, getSession, signInWithMagicLink, signOut, callRides, callCompliance, callSafety, upsertProfile, driverStatus };
+window.R100Auth = { supabase, getSession, signInWithMagicLink, signOut, callRides, callCompliance, callSafety, callAdminReview, upsertProfile, driverStatus };
 window.dispatchEvent(new CustomEvent('r100-auth-ready'));
 
 async function wireAuthPage() {
