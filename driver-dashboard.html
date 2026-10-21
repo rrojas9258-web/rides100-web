@@ -38,7 +38,30 @@
     </section>
 <section class="dashboard-card"><span class="dash-label">DRIVER GRADE</span><h3>New Driver</h3><p>Stars, Diamonds and service history will build your Driver Grade.</p></section>
 <section class="dashboard-card"><span class="dash-label">RATINGS</span><h3>5.0 ★</h3><p>Average rider rating after completed trips.</p></section>
-<section class="dashboard-card"><span class="dash-label">VEHICLE & COMPLIANCE</span><h3>Review required</h3><p>License, insurance, registration, vehicle details and approval status will appear here.</p><button class="button secondary dark-outline dashboard-demo-action" type="button" data-dashboard-action="compliance">Open compliance</button></section>
+<section class="dashboard-card" id="driverComplianceCard">
+  <span class="dash-label">VEHICLE & COMPLIANCE</span>
+  <h3 id="driverComplianceStatus">Incomplete</h3>
+  <p>Complete the checklist below. Do not enter SSN, driver-license number, or upload sensitive documents here.</p>
+  <div class="form-grid">
+    <label class="form-field"><span>Vehicle year</span><input id="driverVehicleYear" type="number" min="2000" max="2035" inputmode="numeric"></label>
+    <label class="form-field"><span>Make</span><input id="driverVehicleMake" type="text" maxlength="60"></label>
+    <label class="form-field"><span>Model</span><input id="driverVehicleModel" type="text" maxlength="60"></label>
+    <label class="form-field"><span>Color</span><input id="driverVehicleColor" type="text" maxlength="40"></label>
+    <label class="form-field"><span>License state</span><input id="driverLicenseState" type="text" maxlength="30" placeholder="GA"></label>
+    <label class="form-field"><span>Insurance expires</span><input id="driverInsuranceExpires" type="date"></label>
+    <label class="form-field"><span>Registration expires</span><input id="driverRegistrationExpires" type="date"></label>
+  </div>
+  <div class="compliance-checks">
+    <label><input id="driverLicenseConfirmed" type="checkbox"> I confirm my driver license is current.</label>
+    <label><input id="driverInsuranceConfirmed" type="checkbox"> I confirm required insurance is current.</label>
+    <label><input id="driverRegistrationConfirmed" type="checkbox"> I confirm vehicle registration is current.</label>
+  </div>
+  <div class="actions">
+    <button class="button secondary dark-outline" id="driverSaveCompliance" type="button">Save Checklist</button>
+    <button class="button primary" id="driverSubmitCompliance" type="button">Submit for Review</button>
+  </div>
+  <small id="driverComplianceMeta">Background check and final approval remain Rides100-admin controlled.</small>
+</section>
 <section class="dashboard-card" id="driverBusinessAssignments">
       <span class="dash-label">R-BUSINESS ASSIGNMENTS</span>
       <h3>Event invitations</h3>
