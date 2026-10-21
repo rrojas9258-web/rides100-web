@@ -35,7 +35,38 @@
         <button type="button" class="safety-tool" data-safety-action="report"><strong>Report Issue</strong><span>Contact Rides100 safety</span></button>
         <button type="button" class="safety-tool emergency" data-safety-action="911"><strong>911</strong><span>Emergency access</span></button>
       </div>
-      <small class="safety-preview-note">Development preview only. Emergency and live-sharing actions are not activated here.</small>
+      <div class="safety-contacts-panel" id="safetyContactsPanel" hidden>
+        <div class="form-grid">
+          <label class="form-field"><span>Contact 1 name</span><input id="safetyContactName1" type="text" maxlength="100"></label>
+          <label class="form-field"><span>Contact 1 phone</span><input id="safetyContactPhone1" type="tel" maxlength="30"></label>
+          <label class="form-field"><span>Contact 2 name</span><input id="safetyContactName2" type="text" maxlength="100"></label>
+          <label class="form-field"><span>Contact 2 phone</span><input id="safetyContactPhone2" type="tel" maxlength="30"></label>
+          <label class="form-field"><span>Contact 3 name</span><input id="safetyContactName3" type="text" maxlength="100"></label>
+          <label class="form-field"><span>Contact 3 phone</span><input id="safetyContactPhone3" type="tel" maxlength="30"></label>
+        </div>
+        <button class="button primary" id="saveSafetyContacts" type="button">Save Emergency Contacts</button>
+      </div>
+      <div class="safety-share-panel" id="safetySharePanel" hidden>
+        <label class="form-field"><span>Secure Share Trip link</span><input id="safetyShareLink" type="text" readonly></label>
+        <div class="actions">
+          <button class="button primary" id="createSafetyShare" type="button">Create Share Link</button>
+          <button class="button secondary dark-outline" id="revokeSafetyShare" type="button">Revoke Link</button>
+        </div>
+        <small>Links expire automatically and can be revoked at any time.</small>
+      </div>
+      <div class="safety-report-panel" id="safetyReportPanel" hidden>
+        <label class="form-field"><span>Issue type</span><select id="safetyReportCategory">
+          <option value="general">General</option>
+          <option value="unsafe_driving">Unsafe driving</option>
+          <option value="harassment">Harassment</option>
+          <option value="vehicle">Vehicle issue</option>
+          <option value="pickup">Pickup issue</option>
+          <option value="other">Other</option>
+        </select></label>
+        <label class="form-field"><span>Details</span><textarea id="safetyReportDetails" maxlength="1200" rows="4"></textarea></label>
+        <button class="button primary" id="submitSafetyReport" type="button">Submit Safety Report</button>
+      </div>
+      <small class="safety-preview-note">911 opens your phone dialer; Rides100 does not place the emergency call automatically.</small>
     </section>
 <section class="dashboard-card"><span class="dash-label">PROFILE & SAFETY</span><h3>Rider account</h3><p>Verified phone, emergency settings, trip support and account preferences will live here.</p><button class="button secondary dark-outline dashboard-demo-action" type="button" data-dashboard-action="profile">Open profile settings</button></section>
 </div><div id="dashboardStatus" class="form-status" role="status"></div></main><script src="app.js"></script><script type="module" src="r100-auth.js"></script></body></html>
