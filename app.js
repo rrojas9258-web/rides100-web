@@ -4509,3 +4509,87 @@ if (window.R100Auth) {
   loadDriverCompliance();
   loadSafetyContacts();
 }
+
+
+async function loadAdminDriverQueue() {
+  const queue = document.getElementById('adminDriverQueue');
+  if (!queue || !window.R100Auth?.callAdminReview) return;
+  const status = document.getElementById('dashboardStatus');
+
+  try {
+    const result = await window.R100Auth.callAdminReview('list');
+    const drivers = Array.isArray(result?.drivers) ? result.drivers : [];
+    queue.innerHTML = '';
+
+    if (!drivers.length) {
+      queue.innerHTML = '<div class="empty-dashboard-state">No submitted driver compliance reviews are waiting.</div>';
+      return;
+    }
+
+    drivers.forEach((driver) => {
+      const row = document.createElement('div');
+      row.className = 'admin-review-row';
+
+      const details = document.createElement('div');
+      details.className = 'admin-review-details';
+
+      const vehicle = document.createElement('strong');
+      vehicle.textContent = [driver.vehicle_year, driver.vehicle_make, driver.vehicle_model].filter(Boolean).join(' ') || 'Vehicle details incomplete';
+
+      const meta = document.createElement('span');
+      const checks = [
+        driver.license_confirmed ? 'License confirmed' : 'License missing',
+        driver.insurance_confirmed ? 'Insurance confirmed' : 'Insurance missing',
+        driver.registration_confirmed ? 'Registration confirmed' : 'Registration missing',
+      ];
+      meta.textContent = checks.join(' · ') + ' · Background: ' + String(driver.background_check_status || 'not_started').replace('_', ' ');
+
+      const id = document.createElement('small');
+      id.textContent = 'Driver ID: ' + (driver.user_id || '');
+
+      details.append(vehicle, meta, id);
+
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+
+      const approve = document.createElement('button');
+      approve.type = 'button';
+      approve.className = 'button primary';
+      approve.textContent = 'Approve';
+
+      const reject = document.createElement('button');
+      reject.type = 'button';
+      reject.className = 'button secondary dark-outline';
+      reject.textContent = 'Reject';
+
+      const review = async (decision) => {
+        approve.disabled = true;
+        reject.disabled = true;
+        try {
+          await window.R100Auth.callAdminReview('review', {
+            driverUserId: driver.user_id,
+            decision,
+          });
+          if (status) status.textContent = 'Driver review updated: ' + decision + '.';
+          await loadAdminDriverQueue();
+        } catch (error) {
+          if (status) status.textContent = error instanceof Error ? error.message : 'Could not update driver review.';
+          approve.disabled = false;
+          reject.disabled = false;
+        }
+      };
+
+      approve.addEventListener('click', () => review('approved'));
+      reject.addEventListener('click', () => review('rejected'));
+      actions.append(approve, reject);
+      row.append(details, actions);
+      queue.appendChild(row);
+    });
+  } catch (error) {
+    queue.innerHTML = '<div class="empty-dashboard-state">Admin access is required.</div>';
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not load admin review queue.';
+  }
+}
+
+window.addEventListener('r100-auth-ready', loadAdminDriverQueue);
+if (window.R100Auth) loadAdminDriverQueue();
