@@ -1227,21 +1227,139 @@ businessTripFormat?.addEventListener('change', renderBusinessOptionPanels);
 renderBusinessOptionPanels();
 
 
+async function getCurrentRiderRide() {
+  if (!window.R100Auth?.callRides) return null;
+  const feed = await window.R100Auth.callRides('riderFeed');
+  const rides = Array.isArray(feed?.rides) ? feed.rides : [];
+  return rides.find((r) => ['accepted','en_route','arrived','in_progress','open','negotiating'].includes(r.status)) || rides[0] || null;
+}
+
+async function loadSafetyContacts() {
+  if (!window.R100Auth?.callSafety || !document.getElementById('safetyContactsPanel')) return;
+  try {
+    const result = await window.R100Auth.callSafety('getContacts');
+    const contacts = Array.isArray(result?.contacts) ? result.contacts : [];
+    for (let i = 1; i <= 3; i += 1) {
+      const contact = contacts.find((x) => Number(x.contact_order) === i) || {};
+      const name = document.getElementById('safetyContactName' + i);
+      const phone = document.getElementById('safetyContactPhone' + i);
+      if (name) name.value = contact.name || '';
+      if (phone) phone.value = contact.phone || '';
+    }
+  } catch {}
+}
+
 document.querySelectorAll('[data-safety-action]').forEach((button) => {
-  button.addEventListener('click', () => {
+  button.addEventListener('click', async () => {
     const action = button.dataset.safetyAction || '';
     const status = document.getElementById('dashboardStatus');
-    const messages = {
-      pin: 'Ride PIN preview: production rides will show a secure verification PIN before trip start.',
-      share: 'Share Trip preview: live trip sharing will activate only during an authenticated ride.',
-      contacts: 'Emergency Contacts preview: saved contacts will require verified account settings.',
-      report: 'Report Issue preview: safety reporting will connect to the protected support workflow.',
-      '911': '911 access is not activated in this development preview. In production, emergency access will use the device emergency flow.',
-    };
-    if (status) status.textContent = messages[action] || 'Safety tool is not active in this development preview.';
+
+    if (action === 'pin') {
+      const pin = document.getElementById('riderRidePin')?.textContent || '—';
+      if (status) status.textContent = pin && pin !== '—'
+        ? 'Your active Ride PIN is ' + pin + '. Give it only to the correct driver at pickup.'
+        : 'A Ride PIN appears after a driver accepts your ride.';
+      return;
+    }
+
+    if (action === 'contacts') {
+      const panel = document.getElementById('safetyContactsPanel');
+      if (panel) panel.hidden = !panel.hidden;
+      if (panel && !panel.hidden) await loadSafetyContacts();
+      return;
+    }
+
+    if (action === 'share') {
+      const panel = document.getElementById('safetySharePanel');
+      if (panel) panel.hidden = !panel.hidden;
+      return;
+    }
+
+    if (action === 'report') {
+      const panel = document.getElementById('safetyReportPanel');
+      if (panel) panel.hidden = !panel.hidden;
+      return;
+    }
+
+    if (action === '911') {
+      if (status) status.textContent = 'Opening your phone dialer for 911. Rides100 does not place the call automatically.';
+      window.location.href = 'tel:911';
+    }
   });
 });
 
+document.getElementById('saveSafetyContacts')?.addEventListener('click', async () => {
+  const status = document.getElementById('dashboardStatus');
+  const contacts = [];
+  for (let i = 1; i <= 3; i += 1) {
+    const name = document.getElementById('safetyContactName' + i)?.value.trim() || '';
+    const phone = document.getElementById('safetyContactPhone' + i)?.value.trim() || '';
+    if (name || phone) contacts.push({ name, phone });
+  }
+  try {
+    const result = await window.R100Auth.callSafety('saveContacts', { contacts });
+    if (status) status.textContent = 'Saved ' + Number(result?.count || 0) + ' emergency contact(s) securely.';
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not save emergency contacts.';
+  }
+});
+
+document.getElementById('createSafetyShare')?.addEventListener('click', async () => {
+  const status = document.getElementById('dashboardStatus');
+  const output = document.getElementById('safetyShareLink');
+  try {
+    const ride = await getCurrentRiderRide();
+    if (!ride || !['accepted','en_route','arrived','in_progress'].includes(ride.status)) {
+      throw new Error('An active accepted ride is required to create a Share Trip link.');
+    }
+    const result = await window.R100Auth.callSafety('createShare', { rideId: ride.id });
+    const raw = result?.shareToken || '';
+    if (!raw) throw new Error('Could not create share token.');
+    const url = 'https://utpprhmhbnioisavfdst.supabase.co/functions/v1/r100-share-status?token=' + encodeURIComponent(raw);
+    if (output) output.value = url;
+    if (navigator.clipboard?.writeText) {
+      try { await navigator.clipboard.writeText(url); } catch {}
+    }
+    if (status) status.textContent = 'Secure Share Trip link created. It expires automatically and was copied when permitted.';
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not create Share Trip link.';
+  }
+});
+
+document.getElementById('revokeSafetyShare')?.addEventListener('click', async () => {
+  const status = document.getElementById('dashboardStatus');
+  try {
+    const ride = await getCurrentRiderRide();
+    if (!ride) throw new Error('No ride found.');
+    await window.R100Auth.callSafety('revokeShares', { rideId: ride.id });
+    const output = document.getElementById('safetyShareLink');
+    if (output) output.value = '';
+    if (status) status.textContent = 'Share Trip link revoked.';
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not revoke Share Trip link.';
+  }
+});
+
+document.getElementById('submitSafetyReport')?.addEventListener('click', async () => {
+  const status = document.getElementById('dashboardStatus');
+  const category = document.getElementById('safetyReportCategory')?.value || 'general';
+  const details = document.getElementById('safetyReportDetails')?.value.trim() || '';
+  try {
+    const ride = await getCurrentRiderRide().catch(() => null);
+    const result = await window.R100Auth.callRides('submitSafetyReport', {
+      rideId: ride?.id || '',
+      reporterRole: 'rider',
+      category,
+      details,
+    });
+    if (document.getElementById('safetyReportDetails')) document.getElementById('safetyReportDetails').value = '';
+    if (status) status.textContent = result?.report?.id
+      ? 'Safety report submitted securely.'
+      : 'Safety report submitted.';
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not submit safety report.';
+  }
+});
 
 async function loadRiderLivePanel() {
   const title = document.getElementById('riderLiveRideTitle');
@@ -4313,3 +4431,81 @@ async function cancelCurrentRide(role) {
 
 document.getElementById('riderCancelRide')?.addEventListener('click', () => cancelCurrentRide('rider'));
 document.getElementById('driverCancelRide')?.addEventListener('click', () => cancelCurrentRide('driver'));
+
+
+async function loadDriverCompliance() {
+  const card = document.getElementById('driverComplianceCard');
+  if (!card || !window.R100Auth?.callCompliance) return;
+  const statusNode = document.getElementById('dashboardStatus');
+  try {
+    const result = await window.R100Auth.callCompliance('get');
+    const x = result?.compliance || {};
+    const setValue = (id, value) => { const el = document.getElementById(id); if (el) el.value = value ?? ''; };
+    const setChecked = (id, value) => { const el = document.getElementById(id); if (el) el.checked = value === true; };
+
+    setValue('driverVehicleYear', x.vehicle_year);
+    setValue('driverVehicleMake', x.vehicle_make);
+    setValue('driverVehicleModel', x.vehicle_model);
+    setValue('driverVehicleColor', x.vehicle_color);
+    setValue('driverLicenseState', x.license_state);
+    setValue('driverInsuranceExpires', x.insurance_expires_on);
+    setValue('driverRegistrationExpires', x.registration_expires_on);
+    setChecked('driverLicenseConfirmed', x.license_confirmed);
+    setChecked('driverInsuranceConfirmed', x.insurance_confirmed);
+    setChecked('driverRegistrationConfirmed', x.registration_confirmed);
+
+    const title = document.getElementById('driverComplianceStatus');
+    if (title) title.textContent = String(x.review_status || 'incomplete').replace('_', ' ').toUpperCase();
+    const meta = document.getElementById('driverComplianceMeta');
+    if (meta) meta.textContent = 'Background check: ' + String(x.background_check_status || 'not_started').replace('_', ' ') + '. Final approval remains Rides100-admin controlled.';
+  } catch (error) {
+    if (statusNode) statusNode.textContent = error instanceof Error ? error.message : 'Could not load compliance status.';
+  }
+}
+
+function driverCompliancePayload() {
+  return {
+    vehicleYear: Number(document.getElementById('driverVehicleYear')?.value || 0),
+    vehicleMake: document.getElementById('driverVehicleMake')?.value.trim() || '',
+    vehicleModel: document.getElementById('driverVehicleModel')?.value.trim() || '',
+    vehicleColor: document.getElementById('driverVehicleColor')?.value.trim() || '',
+    licenseState: document.getElementById('driverLicenseState')?.value.trim() || '',
+    insuranceExpiresOn: document.getElementById('driverInsuranceExpires')?.value || '',
+    registrationExpiresOn: document.getElementById('driverRegistrationExpires')?.value || '',
+    licenseConfirmed: document.getElementById('driverLicenseConfirmed')?.checked === true,
+    insuranceConfirmed: document.getElementById('driverInsuranceConfirmed')?.checked === true,
+    registrationConfirmed: document.getElementById('driverRegistrationConfirmed')?.checked === true,
+  };
+}
+
+document.getElementById('driverSaveCompliance')?.addEventListener('click', async () => {
+  const status = document.getElementById('dashboardStatus');
+  try {
+    await window.R100Auth.callCompliance('save', driverCompliancePayload());
+    if (status) status.textContent = 'Compliance checklist saved securely.';
+    await loadDriverCompliance();
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not save compliance checklist.';
+  }
+});
+
+document.getElementById('driverSubmitCompliance')?.addEventListener('click', async () => {
+  const status = document.getElementById('dashboardStatus');
+  try {
+    await window.R100Auth.callCompliance('save', driverCompliancePayload());
+    await window.R100Auth.callCompliance('submit');
+    if (status) status.textContent = 'Compliance checklist submitted for Rides100 review.';
+    await loadDriverCompliance();
+  } catch (error) {
+    if (status) status.textContent = error instanceof Error ? error.message : 'Could not submit compliance checklist.';
+  }
+});
+
+window.addEventListener('r100-auth-ready', () => {
+  loadDriverCompliance();
+  loadSafetyContacts();
+});
+if (window.R100Auth) {
+  loadDriverCompliance();
+  loadSafetyContacts();
+}
