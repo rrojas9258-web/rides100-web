@@ -3,6 +3,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.118.0';
 const SUPABASE_URL = 'https://utpprhmhbnioisavfdst.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_Pj1o3idV7wjYgi3xkbQtFw_sVXbHnmC';
 const RIDES_ENDPOINT = SUPABASE_URL + '/functions/v1/r100-rides';
+const COMPLIANCE_ENDPOINT = SUPABASE_URL + '/functions/v1/r100-driver-compliance';
+const SAFETY_ENDPOINT = SUPABASE_URL + '/functions/v1/r100-safety';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
@@ -48,6 +50,31 @@ async function callRides(action, payload = {}) {
   return data;
 }
 
+async function callProtectedEndpoint(endpoint, payload = {}) {
+  const session = await getSession();
+  if (!session?.access_token) throw new Error('Sign in is required.');
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + session.access_token,
+      'apikey': SUPABASE_PUBLISHABLE_KEY,
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data?.error || 'Rides100 request failed.');
+  return data;
+}
+
+async function callCompliance(action, payload = {}) {
+  return callProtectedEndpoint(COMPLIANCE_ENDPOINT, { action, ...payload });
+}
+
+async function callSafety(action, payload = {}) {
+  return callProtectedEndpoint(SAFETY_ENDPOINT, { action, ...payload });
+}
+
 async function upsertProfile(profile = {}) {
   const session = await getSession();
   if (!session?.user?.id) throw new Error('Sign in is required.');
@@ -73,7 +100,7 @@ async function driverStatus() {
   return data || null;
 }
 
-window.R100Auth = { supabase, getSession, signInWithMagicLink, signOut, callRides, upsertProfile, driverStatus };
+window.R100Auth = { supabase, getSession, signInWithMagicLink, signOut, callRides, callCompliance, callSafety, upsertProfile, driverStatus };
 window.dispatchEvent(new CustomEvent('r100-auth-ready'));
 
 async function wireAuthPage() {
