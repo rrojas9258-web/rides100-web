@@ -444,3 +444,10 @@ footer{background:#050b13;color:#9ca3af;padding:38px 8vw;font-size:13px}.footer-
 .rider-ride-lifecycle span{display:block;font-size:10px;text-transform:uppercase;color:#69707d;font-weight:800}
 .rider-ride-lifecycle strong{display:block;margin-top:4px;color:#102033}
 @media(max-width:650px){.rider-ride-lifecycle{grid-template-columns:1fr}.safety-contacts-panel .form-grid{grid-template-columns:1fr}}
+
+.admin-review-row{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;padding:16px 0;border-bottom:1px solid #e5eaf0}
+.admin-review-row:last-child{border-bottom:0}
+.admin-review-details{display:grid;gap:6px;min-width:0}
+.admin-review-details strong{color:#102033}
+.admin-review-details span,.admin-review-details small{color:#64748b;line-height:1.5}
+@media(max-width:650px){.admin-review-row{display:grid}.admin-review-row .actions{display:flex;gap:8px;flex-wrap:wrap}}
